@@ -1,0 +1,5 @@
+Please make sure you have SoX installed.
+
+Running `make` should build the pulsar executable, 
+render a 1 minute long test tone as `out.raw` and 
+then convert it to a WAV file called `out.wav` with SoX.
