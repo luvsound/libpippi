@@ -18,7 +18,6 @@ typedef struct Pulsar {
     int numwins;   // Number of wins in stack
     int tablesize; // All tables should be this size
     int samplerate;
-    int wtlength;
     int boundry;
     int morphboundry;
     double phase;
@@ -158,7 +157,6 @@ Pulsar* init(
     p->numwts = numwts;
     p->numwins = numwins;
     p->samplerate = samplerate;
-    p->wtlength = tablesize;
     p->boundry = tablesize - 1;
     p->morphboundry = numwts - 1;
     p->mod = make_sine_win(tablesize);
