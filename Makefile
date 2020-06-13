@@ -2,7 +2,7 @@ all: build render
 
 .PHONY: build
 build:
-	gcc -lm pulsar.c -o pulsar
+	gcc -lm example.c -o pulsar
 
 .PHONY: render
 render:
