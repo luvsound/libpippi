@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -10,7 +11,7 @@ typedef struct Pulsar {
     double **wts;  // Wavetable stack
     double **wins; // Window stack
     double *mod;   // Pulsewidth modulation table
-    double *morph; // Morph table FIXME, use it...
+    double *morph; // Morph table
     int numwts;    // Number of wts in stack
     int numwins;   // Number of wins in stack
     int tablesize; // All tables should be this size
@@ -28,12 +29,15 @@ typedef struct Pulsar {
     double morphinc;
 } Pulsar;
 
+int imax(int a, int b) {
+    if(a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
 
-double interpolate(double* wt, int boundry, double phase, double width) {
-    if(width <= 0) return 0;
-
-    phase *= 1.0/width;
-
+double interpolate(double* wt, int boundry, double phase) {
     double frac = phase - (int)phase;
     int i = (int)phase;
     double a, b;
@@ -47,43 +51,15 @@ double interpolate(double* wt, int boundry, double phase, double width) {
 }
 
 
+/* Wavetable generators
+ * 
+ * All these functions return a table of values 
+ * of the given length with values between -1 and 1
+ */
 double* make_sine(int length) {
     double* out = malloc(sizeof(double) * length);
     for(int i=0; i < length; i++) {
         out[i] = sin((i/(double)length) * PI * 2.0);         
-    }
-    return out;
-}
-
-double* make_sine_win(int length) {
-    double* out = malloc(sizeof(double) * length);
-    for(int i=0; i < length; i++) {
-        out[i] = sin((i/(double)length) * PI);         
-    }
-    return out;
-}
-
-double* make_line_win(int length) {
-    double* out = malloc(sizeof(double) * length);
-    for(int i=0; i < length; i++) {
-        out[i] = i/(double)length;      
-    }
-    return out;
-}
-
-
-double* make_tri(int length) {
-    double* out = malloc(sizeof(double) * length);
-    for(int i=0; i < length; i++) {
-        out[i] = fabs((i/(double)length) * 2.0 - 1.0) * 2.0 - 1.0;      
-    }
-    return out;
-}
-
-double* make_tri_win(int length) {
-    double* out = malloc(sizeof(double) * length);
-    for(int i=0; i < length; i++) {
-        out[i] = fabs((i/(double)length) * 2.0 - 1.0);      
     }
     return out;
 }
@@ -99,6 +75,45 @@ double* make_square(int length) {
     }
     return out;
 }
+
+double* make_tri(int length) {
+    double* out = malloc(sizeof(double) * length);
+    for(int i=0; i < length; i++) {
+        out[i] = fabs((i/(double)length) * 2.0 - 1.0) * 2.0 - 1.0;      
+    }
+    return out;
+}
+
+
+/* Window generators
+ *
+ * All these functions return a table of values 
+ * of the given length with values between 0 and 1
+ */
+double* make_phasor(int length) {
+    double* out = malloc(sizeof(double) * length);
+    for(int i=0; i < length; i++) {
+        out[i] = i/(double)length;      
+    }
+    return out;
+}
+
+double* make_tri_win(int length) {
+    double* out = malloc(sizeof(double) * length);
+    for(int i=0; i < length; i++) {
+        out[i] = fabs((i/(double)length) * 2.0 - 1.0);      
+    }
+    return out;
+}
+
+double* make_sine_win(int length) {
+    double* out = malloc(sizeof(double) * length);
+    for(int i=0; i < length; i++) {
+        out[i] = sin((i/(double)length) * PI);         
+    }
+    return out;
+}
+
 
 
 Pulsar* init(
@@ -160,15 +175,46 @@ void cleanup(Pulsar* p) {
 }
 
 double process(Pulsar* p) {
-    double pw = interpolate(p->mod, p->boundry, p->modphase, 1);
+    double pw = interpolate(p->mod, p->boundry, p->modphase);
 
-    int wtidx = (int)p->morphphase;
-    double wtfrac = p->morphphase - wtidx;
-    double a = interpolate(p->wts[wtidx], p->boundry, p->phase, pw);
-    double b = interpolate(p->wts[wtidx+1], p->boundry, p->phase, pw);
-    double sample = (1.0 - wtfrac) * a + (wtfrac * b);
+    double ipw = 0;
+    if(pw > 0) ipw = 1.0/pw;
 
-    double mod = interpolate(p->wins[0], p->boundry, p->phase, pw);
+    double sample = 0;
+    double mod = 0;
+
+    double morphpos = interpolate(p->morph, p->boundry, p->morphphase);
+
+    if(ipw > 0) {
+        assert(p->numwts >= 1);
+
+        if(p->numwts == 1) {
+            sample = interpolate(p->wts[0], p->boundry, p->phase * ipw);
+        } else {
+            double wtmorphpos = morphpos * imax(1, p->numwts-1);
+            int wtmorphidx = (int)wtmorphpos;
+            double wtmorphfrac = wtmorphpos - wtmorphidx;
+            double a = interpolate(p->wts[wtmorphidx], p->boundry, p->phase * ipw);
+            double b = interpolate(p->wts[wtmorphidx+1], p->boundry, p->phase * ipw);
+            sample = (1.0 - wtmorphfrac) * a + (wtmorphfrac * b);
+        }
+
+        assert(p->numwins >= 1);
+
+        if(p->numwins == 1) {
+            mod = interpolate(p->wins[0], p->boundry, p->phase * ipw);
+        } else {
+            double winmorphpos = morphpos * imax(1, p->numwins-1);
+            int winmorphidx = (int)winmorphpos;
+            double winmorphfrac = winmorphpos - winmorphidx;
+            double a = interpolate(p->wins[winmorphidx], p->boundry, p->phase * ipw);
+            double b = interpolate(p->wins[winmorphidx+1], p->boundry, p->phase * ipw);
+            mod = (1.0 - winmorphfrac) * a + (winmorphfrac * b);
+        }
+    } else {
+        sample = 0;
+        mod = 0;
+    }
 
     p->phase += p->inc * p->freq;
     p->modphase += p->inc * p->modfreq;
@@ -184,8 +230,6 @@ double process(Pulsar* p) {
 int main() {
     int channels = 2;
     int samplerate = 44100;
-    int numwts = 4;
-    int numwins = 2;
     int tablesize = 4096;
     int length = 44100 * 60;
 
@@ -199,11 +243,13 @@ int main() {
         make_tri, 
         make_sine
     };
+    int numwts = sizeof(wts) / sizeof(wts[0]);
 
     generator wins[2] = {
         make_sine_win,
         make_tri_win
     };
+    int numwins = sizeof(wts) / sizeof(wts[0]);
 
     FILE *out;
 
