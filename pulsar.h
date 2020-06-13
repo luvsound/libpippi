@@ -131,8 +131,6 @@ double* make_sine_win(int length) {
  */
 Pulsar* init(
     int tablesize, 
-    int numwts, 
-    int numwins, 
     double freq, 
     double modfreq, 
     double morphfreq, 
@@ -140,6 +138,9 @@ Pulsar* init(
     generator* wins, 
     int samplerate
 ) {
+    int numwts = sizeof(wts) / sizeof(wts[0]);
+    int numwins = sizeof(wts) / sizeof(wts[0]);
+
     Pulsar* p = malloc(sizeof(Pulsar));
 
     p->wts = malloc(sizeof(double*) * numwts);

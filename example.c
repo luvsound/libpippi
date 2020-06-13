@@ -16,17 +16,15 @@ int main() {
         make_tri, 
         make_sine
     };
-    int numwts = sizeof(wts) / sizeof(wts[0]);
 
     generator wins[2] = {
         make_sine_win,
         make_tri_win
     };
-    int numwins = sizeof(wts) / sizeof(wts[0]);
 
     FILE *out;
 
-    Pulsar* p = init(tablesize, numwts, numwins, freq, modfreq, morphfreq, wts, wins, samplerate);
+    Pulsar* p = init(tablesize, freq, modfreq, morphfreq, wts, wins, samplerate);
     out = fopen("out.raw", "wb");
 
     double sample = 0;
