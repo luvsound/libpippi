@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+/* Typedefs and constants
+ */
 #define PI 3.14159265
 
 typedef double* (*generator)(int);
@@ -29,6 +31,12 @@ typedef struct Pulsar {
     double morphinc;
 } Pulsar;
 
+
+
+/* Utilities
+ *
+ * Small collection of utility functions
+ */
 int imax(int a, int b) {
     if(a > b) {
         return a;
@@ -49,6 +57,7 @@ double interpolate(double* wt, int boundry, double phase) {
 
     return (1.0 - frac) * a + (frac * b);
 }
+
 
 
 /* Wavetable generators
@@ -85,6 +94,7 @@ double* make_tri(int length) {
 }
 
 
+
 /* Window generators
  *
  * All these functions return a table of values 
@@ -116,6 +126,10 @@ double* make_sine_win(int length) {
 
 
 
+/* Pulsar lifecycle functions
+ *
+ * init -> process -> cleanup
+ */
 Pulsar* init(
     int tablesize, 
     int numwts, 
@@ -156,22 +170,6 @@ Pulsar* init(
     p->morphfreq = morphfreq;
     p->inc = (1.0/samplerate) * p->boundry;
     p->morphinc = (1.0/samplerate) * p->morphboundry;
-}
-
-void cleanup(Pulsar* p) {
-    for(int i=0; i < p->numwts; i++) {
-        free(p->wts[i]);
-    }
-
-    for(int i=0; i < p->numwins; i++) {
-        free(p->wins[i]);
-    }
-
-    free(p->wts);
-    free(p->wins);
-    free(p->mod);
-    free(p->morph);
-    free(p);
 }
 
 double process(Pulsar* p) {
@@ -231,6 +229,22 @@ double process(Pulsar* p) {
 
     // Multiply the wavetable value by the window value
     return sample * mod;
+}
+
+void cleanup(Pulsar* p) {
+    for(int i=0; i < p->numwts; i++) {
+        free(p->wts[i]);
+    }
+
+    for(int i=0; i < p->numwins; i++) {
+        free(p->wins[i]);
+    }
+
+    free(p->wts);
+    free(p->wins);
+    free(p->mod);
+    free(p->morph);
+    free(p);
 }
 
 
