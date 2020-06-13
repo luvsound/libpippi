@@ -175,22 +175,26 @@ void cleanup(Pulsar* p) {
 }
 
 double process(Pulsar* p) {
+    // Get the pulsewidth and inverse pulsewidth if the pulsewidth 
+    // is zero, skip everything except phase incrementing and return 
+    // a zero down the line.
     double pw = interpolate(p->mod, p->boundry, p->modphase);
-
     double ipw = 0;
     if(pw > 0) ipw = 1.0/pw;
 
     double sample = 0;
     double mod = 0;
 
-    double morphpos = interpolate(p->morph, p->boundry, p->morphphase);
-
     if(ipw > 0) {
-        assert(p->numwts >= 1);
+        double morphpos = interpolate(p->morph, p->boundry, p->morphphase);
 
+        assert(p->numwts >= 1);
         if(p->numwts == 1) {
+            // If there is just a single wavetable in the stack, get the current value
             sample = interpolate(p->wts[0], p->boundry, p->phase * ipw);
         } else {
+            // If there are multiple wavetables in the stack, get their values 
+            // and then interpolate the value at the morph position between them.
             double wtmorphpos = morphpos * imax(1, p->numwts-1);
             int wtmorphidx = (int)wtmorphpos;
             double wtmorphfrac = wtmorphpos - wtmorphidx;
@@ -200,10 +204,12 @@ double process(Pulsar* p) {
         }
 
         assert(p->numwins >= 1);
-
         if(p->numwins == 1) {
+            // If there is just a single window in the stack, get the current value
             mod = interpolate(p->wins[0], p->boundry, p->phase * ipw);
         } else {
+            // If there are multiple wavetables in the stack, get their values 
+            // and then interpolate the value at the morph position between them.
             double winmorphpos = morphpos * imax(1, p->numwins-1);
             int winmorphidx = (int)winmorphpos;
             double winmorphfrac = winmorphpos - winmorphidx;
@@ -211,19 +217,19 @@ double process(Pulsar* p) {
             double b = interpolate(p->wins[winmorphidx+1], p->boundry, p->phase * ipw);
             mod = (1.0 - winmorphfrac) * a + (winmorphfrac * b);
         }
-    } else {
-        sample = 0;
-        mod = 0;
     }
 
+    // Increment the wavetable/window phase, pulsewidth/mod phase & the morph phase
     p->phase += p->inc * p->freq;
     p->modphase += p->inc * p->modfreq;
     p->morphphase += p->morphinc * p->morphfreq;
 
+    // Prevent phase overflow by subtracting the boundries if they have been passed
     if(p->phase >= p->boundry) p->phase -= p->boundry;
     if(p->modphase >= p->boundry) p->modphase -= p->boundry;
     if(p->morphphase >= p->morphboundry) p->morphphase -= p->morphboundry;
 
+    // Multiply the wavetable value by the window value
     return sample * mod;
 }
 
