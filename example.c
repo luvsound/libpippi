@@ -23,10 +23,8 @@ int main() {
     };
 
     FILE *out;
-
     Pulsar* p = init(tablesize, freq, modfreq, morphfreq, wts, wins, samplerate);
     out = fopen("out.raw", "wb");
-
     double sample = 0;
 
     for(int i=0; i < length; i++) {
@@ -35,8 +33,8 @@ int main() {
             fwrite(&sample, sizeof(double), 1, out);
         }
     }
-    cleanup(p);
 
+    cleanup(p);
     fclose(out);
     return 0;
 }
