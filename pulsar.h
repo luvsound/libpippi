@@ -89,16 +89,13 @@ int paramcount(char* str) {
  * All these functions return a table of values 
  * of the given length with values between -1 and 1
  */
-lpfloat_t* make_sine(int length) {
-    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
+void wavetable_sine(lpfloat_t* out, int length) {
     for(int i=0; i < length; i++) {
         out[i] = sin((i/(lpfloat_t)length) * PI * 2.0);         
     }
-    return out;
 }
 
-lpfloat_t* make_square(int length) {
-    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
+void wavetable_square(lpfloat_t* out, int length) {
     for(int i=0; i < length; i++) {
         if(i < (length/2.0)) {
             out[i] = 0.9999;
@@ -106,15 +103,12 @@ lpfloat_t* make_square(int length) {
             out[i] = -0.9999;
         }
     }
-    return out;
 }
 
-lpfloat_t* make_tri(int length) {
-    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
+void wavetable_tri(lpfloat_t* out, int length) {
     for(int i=0; i < length; i++) {
         out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0) * 2.0 - 1.0;      
     }
-    return out;
 }
 
 
@@ -124,90 +118,79 @@ lpfloat_t* make_tri(int length) {
  * All these functions return a table of values 
  * of the given length with values between 0 and 1
  */
-lpfloat_t* make_phasor(int length) {
-    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
+void window_phasor(lpfloat_t* out, int length) {
     for(int i=0; i < length; i++) {
         out[i] = i/(lpfloat_t)length;      
     }
-    return out;
 }
 
-lpfloat_t* make_tri_win(int length) {
-    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
+void window_tri(lpfloat_t* out, int length) {
     for(int i=0; i < length; i++) {
         out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0);      
     }
-    return out;
 }
 
-lpfloat_t* make_sine_win(int length) {
-    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
+void window_sine(lpfloat_t* out, int length) {
     for(int i=0; i < length; i++) {
         out[i] = sin((i/(lpfloat_t)length) * PI);         
     }
-    return out;
 }
 
 
 
 /* Param parsers
  */
-lpfloat_t** parsewts(char* str, int numwts, int tablesize) {
+void parsewts(lpfloat_t** wts, char* str, int numwts, int tablesize) {
     char sep[] = ",";
     char* token = strtok(str, sep);
-    lpfloat_t** wts = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwts);
     int i = 0;
     while(token != NULL) {
         if (strcmp(token, "sine") == 0) {
-            wts[i] = make_sine(tablesize);            
+            wavetable_sine(wts[i], tablesize);            
         } else if (strcmp(token, "tri") == 0) {
-            wts[i] = make_tri(tablesize);            
+            wavetable_tri(wts[i], tablesize);            
         } else if (strcmp(token, "square") == 0) {
-            wts[i] = make_square(tablesize);            
+            wavetable_square(wts[i], tablesize);            
         } else {
-            wts[i] = make_sine(tablesize);            
+            wavetable_sine(wts[i], tablesize);            
         }
 
         token = strtok(NULL, sep);
         i += 1;
     }
-    return wts;
 }
 
-lpfloat_t** parsewins(char* str, int numwins, int tablesize) {
+void parsewins(lpfloat_t** wins, char* str, int numwins, int tablesize) {
     char sep[] = ",";
     char* token = strtok(str, sep);
-    lpfloat_t** wins = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwins);
     int i = 0;
     while(token != NULL) {
         if (strcmp(token, "sine") == 0) {
-            wins[i] = make_sine_win(tablesize);            
+            window_sine(wins[i], tablesize);            
         } else if (strcmp(token, "tri") == 0) {
-            wins[i] = make_tri_win(tablesize);            
+            window_tri(wins[i], tablesize);            
         } else if (strcmp(token, "phasor") == 0) {
-            wins[i] = make_phasor(tablesize);            
+            window_phasor(wins[i], tablesize);            
         } else {
-            wins[i] = make_sine_win(tablesize);            
+            window_sine(wins[i], tablesize);            
         }
 
         token = strtok(NULL, sep);
         i += 1;
     }
-    return wins;
 }
 
-int* parseburst(char* str, int numbursts) {
+void parseburst(int* burst, char* str, int numbursts) {
     char sep[] = ",";
     char* token = strtok(str, sep);
-    int* burst = (int*)malloc(sizeof(int) * numbursts);
     int i = 0;
+
     burst[i] = atoi(token);
     while(token != NULL) {
         token = strtok(NULL, sep);
         if(token != NULL) burst[i] = atoi(token);
         i += 1;
     }
-    return burst;
 }
 
 
@@ -232,9 +215,21 @@ Pulsar* lpinit(
 
     Pulsar* p = (Pulsar*)malloc(sizeof(Pulsar));
 
-    p->wts = parsewts(wts, numwts, tablesize);
-    p->wins = parsewins(wins, numwins, tablesize);
-    p->burst = parseburst(burst, numbursts);
+    p->wts = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwts);
+    for(int i=0; i < numwts; i++) {
+        p->wts[i] = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
+    }
+
+    p->wins = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwins);
+    for(int i=0; i < numwins; i++) {
+        p->wins[i] = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
+    }
+
+    p->burst = (int*)malloc(sizeof(int) * numbursts);
+
+    parsewts(p->wts, wts, numwts, tablesize);
+    parsewins(p->wins, wins, numwins, tablesize);
+    parseburst(p->burst, burst, numbursts);
 
     p->numwts = numwts;
     p->numwins = numwins;
@@ -245,8 +240,10 @@ Pulsar* lpinit(
     p->burstboundry = numbursts - 1;
     if(p->burstboundry <= 1) burst = NULL; // Disable burst for single value tables
 
-    p->mod = make_sine_win(tablesize);
-    p->morph = make_sine_win(tablesize);
+    p->mod = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
+    p->morph = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
+    window_sine(p->mod, tablesize);
+    window_sine(p->morph, tablesize);
 
     p->burstphase = 0;
     p->phase = 0;

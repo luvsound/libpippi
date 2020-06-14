@@ -11,7 +11,7 @@ int main() {
     lpfloat_t freq = 220.0;
 
     char wts[] = "sine,square,tri,sine";
-    char wins[] = "sine";
+    char wins[] = "sine,hann,sine";
     char burst[] = "1,1,0,1";
 
     Pulsar* p = lpinit(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
