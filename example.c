@@ -12,7 +12,7 @@ int main() {
 
     char wts[] = "sine,square,tri,sine";
     char wins[] = "sine";
-    char burst[] = "1,0,0,1,1,0,0";
+    char burst[] = "1,1,0,1";
 
     Pulsar* p = init(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
 
