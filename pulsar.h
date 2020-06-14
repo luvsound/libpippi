@@ -136,6 +136,12 @@ void window_sine(lpfloat_t* out, int length) {
     }
 }
 
+void window_hanning(lpfloat_t* out, int length) {
+    assert(length > 1);
+    for(int i=0; i < length; i++) {
+        out[i] = 0.5 - 0.5 * cos(2.0 * PI * i / (length-1.0));
+    }
+}
 
 
 /* Param parsers
@@ -171,6 +177,8 @@ void parsewins(lpfloat_t** wins, char* str, int numwins, int tablesize) {
             window_tri(wins[i], tablesize);            
         } else if (strcmp(token, "phasor") == 0) {
             window_phasor(wins[i], tablesize);            
+        } else if (strcmp(token, "hann") == 0) {
+            window_hanning(wins[i], tablesize);            
         } else {
             window_sine(wins[i], tablesize);            
         }
@@ -199,7 +207,7 @@ void parseburst(int* burst, char* str, int numbursts) {
  *
  * init -> process -> cleanup
  */
-Pulsar* lpinit(
+Pulsar* init_pulsar(
     int tablesize, 
     lpfloat_t freq, 
     lpfloat_t modfreq, 
@@ -258,7 +266,7 @@ Pulsar* lpinit(
     return p;
 }
 
-lpfloat_t lpprocess(Pulsar* p) {
+lpfloat_t process_pulsar_sample(Pulsar* p) {
     // Get the pulsewidth and inverse pulsewidth if the pulsewidth 
     // is zero, skip everything except phase incrementing and return 
     // a zero down the line.
@@ -328,7 +336,7 @@ lpfloat_t lpprocess(Pulsar* p) {
     return sample * mod;
 }
 
-void cleanup(Pulsar* p) {
+void cleanup_pulsar(Pulsar* p) {
     for(int i=0; i < p->numwts; i++) {
         free(p->wts[i]);
     }
