@@ -11,7 +11,7 @@ int main() {
     double freq = 220.0;
 
     char wts[] = "sine,square,tri,sine";
-    char wins[] = "sine,tri";
+    char wins[] = "sine";
     char burst[] = "1,0,0,1,1,0,0";
 
     Pulsar* p = init(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
