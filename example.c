@@ -10,23 +10,16 @@ int main() {
     double morphfreq = 0.1;
     double freq = 220.0;
 
-    generator wts[4] = {
-        make_sine,
-        make_square, 
-        make_tri, 
-        make_sine
-    };
+    char wts[] = "sine,square,tri,sine";
+    char wins[] = "sine,tri";
+    char burst[] = "1,0,0,1,1,0,0";
 
-    generator wins[2] = {
-        make_sine_win,
-        make_tri_win
-    };
+    Pulsar* p = init(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
 
     FILE *out;
-    Pulsar* p = init(tablesize, freq, modfreq, morphfreq, wts, wins, samplerate);
     out = fopen("out.raw", "wb");
-    double sample = 0;
 
+    double sample = 0;
     for(int i=0; i < length; i++) {
         sample = process(p);
         for(int c=0; c < channels; c++) {

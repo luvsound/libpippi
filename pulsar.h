@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 /* Typedefs and constants
  */
@@ -14,12 +15,15 @@ typedef struct Pulsar {
     double **wins; // Window stack
     double *mod;   // Pulsewidth modulation table
     double *morph; // Morph table
+    int* burst;    // Burst table
     int numwts;    // Number of wts in stack
     int numwins;   // Number of wins in stack
     int tablesize; // All tables should be this size
     int samplerate;
     int boundry;
     int morphboundry;
+    int burstboundry;
+    int burstphase;
     double phase;
     double modphase;
     double morphphase;
@@ -57,6 +61,20 @@ double interpolate(double* wt, int boundry, double phase) {
     return (1.0 - frac) * a + (frac * b);
 }
 
+int paramcount(char* str) {
+    int count = 1;
+    int i = 0;
+
+    while(str[i] != '\0') {
+        char c = str[i];
+        i += 1;
+        if(c == ',') {
+            count += 1;
+        }
+    }
+
+    return count;
+}
 
 
 /* Wavetable generators
@@ -125,6 +143,68 @@ double* make_sine_win(int length) {
 
 
 
+/* Param parsers
+ */
+double** parsewts(char* str, int numwts, int tablesize) {
+    char sep[] = ",";
+    char* token = strtok(str, sep);
+    double** wts = malloc(sizeof(double*) * numwts);
+    int i = 0;
+    while(token != NULL) {
+        if (strcmp(token, "sine") == 0) {
+            wts[i] = make_sine(tablesize);            
+        } else if (strcmp(token, "tri") == 0) {
+            wts[i] = make_tri(tablesize);            
+        } else if (strcmp(token, "square") == 0) {
+            wts[i] = make_square(tablesize);            
+        } else {
+            wts[i] = make_sine(tablesize);            
+        }
+
+        token = strtok(NULL, sep);
+        i += 1;
+    }
+    return wts;
+}
+
+double** parsewins(char* str, int numwins, int tablesize) {
+    char sep[] = ",";
+    char* token = strtok(str, sep);
+    double** wins = malloc(sizeof(double*) * numwins);
+    int i = 0;
+    while(token != NULL) {
+        if (strcmp(token, "sine") == 0) {
+            wins[i] = make_sine_win(tablesize);            
+        } else if (strcmp(token, "tri") == 0) {
+            wins[i] = make_tri_win(tablesize);            
+        } else if (strcmp(token, "phasor") == 0) {
+            wins[i] = make_phasor(tablesize);            
+        } else {
+            wins[i] = make_sine_win(tablesize);            
+        }
+
+        token = strtok(NULL, sep);
+        i += 1;
+    }
+    return wins;
+}
+
+int* parseburst(char* str, int numbursts) {
+    char sep[] = ",";
+    char* token = strtok(str, sep);
+    int* burst = malloc(sizeof(int) * numbursts);
+    int i = 0;
+    int t = 0;
+    while(token != NULL) {
+        burst[i] = atoi(token);
+        token = strtok(NULL, sep);
+        i += 1;
+    }
+    return burst;
+}
+
+
+
 /* Pulsar lifecycle functions
  *
  * init -> process -> cleanup
@@ -134,41 +214,42 @@ Pulsar* init(
     double freq, 
     double modfreq, 
     double morphfreq, 
-    generator* wts, 
-    generator* wins, 
+    char* wts, 
+    char* wins, 
+    char* burst,
     int samplerate
 ) {
-    int numwts = sizeof(wts) / sizeof(wts[0]);
-    int numwins = sizeof(wts) / sizeof(wts[0]);
+    int numwts = paramcount(wts);
+    int numwins = paramcount(wins);
+    int numbursts = paramcount(burst);
 
     Pulsar* p = malloc(sizeof(Pulsar));
 
-    p->wts = malloc(sizeof(double*) * numwts);
-    for(int i=0; i < numwts; i++) {
-        generator g = wts[i];
-        p->wts[i] = g(tablesize);
-    }
-
-    p->wins = malloc(sizeof(double*) * numwins);
-    for(int i=0; i < numwins; i++) {
-        generator g = wins[i];
-        p->wins[i] = g(tablesize);
-    }
+    p->wts = parsewts(wts, numwts, tablesize);
+    p->wins = parsewins(wins, numwins, tablesize);
+    p->burst = parseburst(burst, numbursts);
 
     p->numwts = numwts;
     p->numwins = numwins;
     p->samplerate = samplerate;
+
     p->boundry = tablesize - 1;
     p->morphboundry = numwts - 1;
+    p->burstboundry = numbursts - 1;
+    if(p->burstboundry <= 1) burst = NULL; // Disable burst for single value tables
+
     p->mod = make_sine_win(tablesize);
     p->morph = make_sine_win(tablesize);
+
+    p->burstphase = 0;
     p->phase = 0;
     p->modphase = 0;
+
     p->freq = freq;
     p->modfreq = modfreq;
     p->morphfreq = morphfreq;
+
     p->inc = (1.0/samplerate) * p->boundry;
-    p->morphinc = (1.0/samplerate) * p->morphboundry;
 }
 
 double process(Pulsar* p) {
@@ -181,8 +262,13 @@ double process(Pulsar* p) {
 
     double sample = 0;
     double mod = 0;
+    double burst = 1;
 
-    if(ipw > 0) {
+    if(p->burst != NULL) {
+        burst = p->burst[p->burstphase];
+    }
+
+    if(ipw > 0 && burst > 0) {
         double morphpos = interpolate(p->morph, p->boundry, p->morphphase);
 
         assert(p->numwts >= 1);
@@ -219,12 +305,18 @@ double process(Pulsar* p) {
     // Increment the wavetable/window phase, pulsewidth/mod phase & the morph phase
     p->phase += p->inc * p->freq;
     p->modphase += p->inc * p->modfreq;
-    p->morphphase += p->morphinc * p->morphfreq;
+    p->morphphase += p->inc * p->morphfreq;
+
+    // Increment the burst phase on pulse boundries
+    if(p->phase >= p->boundry) {
+        p->burstphase += 1;
+    }
 
     // Prevent phase overflow by subtracting the boundries if they have been passed
     if(p->phase >= p->boundry) p->phase -= p->boundry;
     if(p->modphase >= p->boundry) p->modphase -= p->boundry;
     if(p->morphphase >= p->morphboundry) p->morphphase -= p->morphboundry;
+    if(p->burstphase >= p->burstboundry) p->burstphase -= p->burstboundry;
 
     // Multiply the wavetable value by the window value
     return sample * mod;
@@ -243,6 +335,7 @@ void cleanup(Pulsar* p) {
     free(p->wins);
     free(p->mod);
     free(p->morph);
+    free(p->burst);
     free(p);
 }
 
