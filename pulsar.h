@@ -31,7 +31,6 @@ typedef struct Pulsar {
     double modfreq;
     double morphfreq;
     double inc;
-    double morphinc;
 } Pulsar;
 
 
@@ -315,7 +314,7 @@ double process(Pulsar* p) {
     // Prevent phase overflow by subtracting the boundries if they have been passed
     if(p->phase >= p->boundry) p->phase -= p->boundry;
     if(p->modphase >= p->boundry) p->modphase -= p->boundry;
-    if(p->morphphase >= p->morphboundry) p->morphphase -= p->morphboundry;
+    if(p->morphphase >= p->boundry) p->morphphase -= p->boundry;
     if(p->burstphase >= p->burstboundry) p->burstphase -= p->burstboundry;
 
     // Multiply the wavetable value by the window value

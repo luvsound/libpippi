@@ -6,8 +6,8 @@ int main() {
     int tablesize = 4096;
     int length = 44100 * 60;
 
-    double modfreq = 0.02;
-    double morphfreq = 0.1;
+    double modfreq = 0.1;
+    double morphfreq = 0.3;
     double freq = 220.0;
 
     char wts[] = "sine,square,tri,sine";
