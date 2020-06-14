@@ -4,33 +4,41 @@
 #include <math.h>
 #include <string.h>
 
-/* Typedefs and constants
- */
+#ifndef PI
 #define PI 3.14159265
+#endif
 
-typedef double* (*generator)(int);
+#ifdef LPCOMPACT
+typedef float lpfloat_t;
+#endif
+
+#ifndef LPCOMPACT
+typedef double lpfloat_t;
+#endif
+
+typedef lpfloat_t* (*generator)(int);
 
 typedef struct Pulsar {
-    double **wts;  // Wavetable stack
-    double **wins; // Window stack
-    double *mod;   // Pulsewidth modulation table
-    double *morph; // Morph table
+    lpfloat_t **wts;  // Wavetable stack
+    lpfloat_t **wins; // Window stack
+    lpfloat_t *mod;   // Pulsewidth modulation table
+    lpfloat_t *morph; // Morph table
     int* burst;    // Burst table
     int numwts;    // Number of wts in stack
     int numwins;   // Number of wins in stack
     int tablesize; // All tables should be this size
-    int samplerate;
+    lpfloat_t samplerate;
     int boundry;
     int morphboundry;
     int burstboundry;
     int burstphase;
-    double phase;
-    double modphase;
-    double morphphase;
-    double freq;
-    double modfreq;
-    double morphfreq;
-    double inc;
+    lpfloat_t phase;
+    lpfloat_t modphase;
+    lpfloat_t morphphase;
+    lpfloat_t freq;
+    lpfloat_t modfreq;
+    lpfloat_t morphfreq;
+    lpfloat_t inc;
 } Pulsar;
 
 
@@ -47,10 +55,10 @@ int imax(int a, int b) {
     }
 }
 
-double interpolate(double* wt, int boundry, double phase) {
-    double frac = phase - (int)phase;
+lpfloat_t interpolate(lpfloat_t* wt, int boundry, lpfloat_t phase) {
+    lpfloat_t frac = phase - (int)phase;
     int i = (int)phase;
-    double a, b;
+    lpfloat_t a, b;
 
     if (i >= boundry) return 0;
 
@@ -81,16 +89,16 @@ int paramcount(char* str) {
  * All these functions return a table of values 
  * of the given length with values between -1 and 1
  */
-double* make_sine(int length) {
-    double* out = malloc(sizeof(double) * length);
+lpfloat_t* make_sine(int length) {
+    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
     for(int i=0; i < length; i++) {
-        out[i] = sin((i/(double)length) * PI * 2.0);         
+        out[i] = sin((i/(lpfloat_t)length) * PI * 2.0);         
     }
     return out;
 }
 
-double* make_square(int length) {
-    double* out = malloc(sizeof(double) * length);
+lpfloat_t* make_square(int length) {
+    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
     for(int i=0; i < length; i++) {
         if(i < (length/2.0)) {
             out[i] = 0.9999;
@@ -101,10 +109,10 @@ double* make_square(int length) {
     return out;
 }
 
-double* make_tri(int length) {
-    double* out = malloc(sizeof(double) * length);
+lpfloat_t* make_tri(int length) {
+    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
     for(int i=0; i < length; i++) {
-        out[i] = fabs((i/(double)length) * 2.0 - 1.0) * 2.0 - 1.0;      
+        out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0) * 2.0 - 1.0;      
     }
     return out;
 }
@@ -116,26 +124,26 @@ double* make_tri(int length) {
  * All these functions return a table of values 
  * of the given length with values between 0 and 1
  */
-double* make_phasor(int length) {
-    double* out = malloc(sizeof(double) * length);
+lpfloat_t* make_phasor(int length) {
+    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
     for(int i=0; i < length; i++) {
-        out[i] = i/(double)length;      
+        out[i] = i/(lpfloat_t)length;      
     }
     return out;
 }
 
-double* make_tri_win(int length) {
-    double* out = malloc(sizeof(double) * length);
+lpfloat_t* make_tri_win(int length) {
+    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
     for(int i=0; i < length; i++) {
-        out[i] = fabs((i/(double)length) * 2.0 - 1.0);      
+        out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0);      
     }
     return out;
 }
 
-double* make_sine_win(int length) {
-    double* out = malloc(sizeof(double) * length);
+lpfloat_t* make_sine_win(int length) {
+    lpfloat_t* out = (lpfloat_t*)malloc(sizeof(lpfloat_t) * length);
     for(int i=0; i < length; i++) {
-        out[i] = sin((i/(double)length) * PI);         
+        out[i] = sin((i/(lpfloat_t)length) * PI);         
     }
     return out;
 }
@@ -144,10 +152,10 @@ double* make_sine_win(int length) {
 
 /* Param parsers
  */
-double** parsewts(char* str, int numwts, int tablesize) {
+lpfloat_t** parsewts(char* str, int numwts, int tablesize) {
     char sep[] = ",";
     char* token = strtok(str, sep);
-    double** wts = malloc(sizeof(double*) * numwts);
+    lpfloat_t** wts = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwts);
     int i = 0;
     while(token != NULL) {
         if (strcmp(token, "sine") == 0) {
@@ -166,10 +174,10 @@ double** parsewts(char* str, int numwts, int tablesize) {
     return wts;
 }
 
-double** parsewins(char* str, int numwins, int tablesize) {
+lpfloat_t** parsewins(char* str, int numwins, int tablesize) {
     char sep[] = ",";
     char* token = strtok(str, sep);
-    double** wins = malloc(sizeof(double*) * numwins);
+    lpfloat_t** wins = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwins);
     int i = 0;
     while(token != NULL) {
         if (strcmp(token, "sine") == 0) {
@@ -191,12 +199,12 @@ double** parsewins(char* str, int numwins, int tablesize) {
 int* parseburst(char* str, int numbursts) {
     char sep[] = ",";
     char* token = strtok(str, sep);
-    int* burst = malloc(sizeof(int) * numbursts);
+    int* burst = (int*)malloc(sizeof(int) * numbursts);
     int i = 0;
-    int t = 0;
+    burst[i] = atoi(token);
     while(token != NULL) {
-        burst[i] = atoi(token);
         token = strtok(NULL, sep);
+        if(token != NULL) burst[i] = atoi(token);
         i += 1;
     }
     return burst;
@@ -208,21 +216,21 @@ int* parseburst(char* str, int numbursts) {
  *
  * init -> process -> cleanup
  */
-Pulsar* init(
+Pulsar* lpinit(
     int tablesize, 
-    double freq, 
-    double modfreq, 
-    double morphfreq, 
+    lpfloat_t freq, 
+    lpfloat_t modfreq, 
+    lpfloat_t morphfreq, 
     char* wts, 
     char* wins, 
     char* burst,
-    int samplerate
+    lpfloat_t samplerate
 ) {
     int numwts = paramcount(wts);
     int numwins = paramcount(wins);
     int numbursts = paramcount(burst);
 
-    Pulsar* p = malloc(sizeof(Pulsar));
+    Pulsar* p = (Pulsar*)malloc(sizeof(Pulsar));
 
     p->wts = parsewts(wts, numwts, tablesize);
     p->wins = parsewins(wins, numwins, tablesize);
@@ -249,26 +257,28 @@ Pulsar* init(
     p->morphfreq = morphfreq;
 
     p->inc = (1.0/samplerate) * p->boundry;
+
+    return p;
 }
 
-double process(Pulsar* p) {
+lpfloat_t lpprocess(Pulsar* p) {
     // Get the pulsewidth and inverse pulsewidth if the pulsewidth 
     // is zero, skip everything except phase incrementing and return 
     // a zero down the line.
-    double pw = interpolate(p->mod, p->boundry, p->modphase);
-    double ipw = 0;
+    lpfloat_t pw = interpolate(p->mod, p->boundry, p->modphase);
+    lpfloat_t ipw = 0;
     if(pw > 0) ipw = 1.0/pw;
 
-    double sample = 0;
-    double mod = 0;
-    double burst = 1;
+    lpfloat_t sample = 0;
+    lpfloat_t mod = 0;
+    lpfloat_t burst = 1;
 
     if(p->burst != NULL) {
         burst = p->burst[p->burstphase];
     }
 
     if(ipw > 0 && burst > 0) {
-        double morphpos = interpolate(p->morph, p->boundry, p->morphphase);
+        lpfloat_t morphpos = interpolate(p->morph, p->boundry, p->morphphase);
 
         assert(p->numwts >= 1);
         if(p->numwts == 1) {
@@ -277,11 +287,11 @@ double process(Pulsar* p) {
         } else {
             // If there are multiple wavetables in the stack, get their values 
             // and then interpolate the value at the morph position between them.
-            double wtmorphpos = morphpos * imax(1, p->numwts-1);
+            lpfloat_t wtmorphpos = morphpos * imax(1, p->numwts-1);
             int wtmorphidx = (int)wtmorphpos;
-            double wtmorphfrac = wtmorphpos - wtmorphidx;
-            double a = interpolate(p->wts[wtmorphidx], p->boundry, p->phase * ipw);
-            double b = interpolate(p->wts[wtmorphidx+1], p->boundry, p->phase * ipw);
+            lpfloat_t wtmorphfrac = wtmorphpos - wtmorphidx;
+            lpfloat_t a = interpolate(p->wts[wtmorphidx], p->boundry, p->phase * ipw);
+            lpfloat_t b = interpolate(p->wts[wtmorphidx+1], p->boundry, p->phase * ipw);
             sample = (1.0 - wtmorphfrac) * a + (wtmorphfrac * b);
         }
 
@@ -292,11 +302,11 @@ double process(Pulsar* p) {
         } else {
             // If there are multiple wavetables in the stack, get their values 
             // and then interpolate the value at the morph position between them.
-            double winmorphpos = morphpos * imax(1, p->numwins-1);
+            lpfloat_t winmorphpos = morphpos * imax(1, p->numwins-1);
             int winmorphidx = (int)winmorphpos;
-            double winmorphfrac = winmorphpos - winmorphidx;
-            double a = interpolate(p->wins[winmorphidx], p->boundry, p->phase * ipw);
-            double b = interpolate(p->wins[winmorphidx+1], p->boundry, p->phase * ipw);
+            lpfloat_t winmorphfrac = winmorphpos - winmorphidx;
+            lpfloat_t a = interpolate(p->wins[winmorphidx], p->boundry, p->phase * ipw);
+            lpfloat_t b = interpolate(p->wins[winmorphidx+1], p->boundry, p->phase * ipw);
             mod = (1.0 - winmorphfrac) * a + (winmorphfrac * b);
         }
     }

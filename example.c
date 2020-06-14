@@ -6,24 +6,24 @@ int main() {
     int tablesize = 4096;
     int length = 44100 * 60;
 
-    double modfreq = 0.1;
-    double morphfreq = 0.3;
-    double freq = 220.0;
+    lpfloat_t modfreq = 0.1;
+    lpfloat_t morphfreq = 0.3;
+    lpfloat_t freq = 220.0;
 
     char wts[] = "sine,square,tri,sine";
     char wins[] = "sine";
     char burst[] = "1,1,0,1";
 
-    Pulsar* p = init(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
+    Pulsar* p = lpinit(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
 
     FILE *out;
     out = fopen("out.raw", "wb");
 
-    double sample = 0;
+    lpfloat_t sample = 0;
     for(int i=0; i < length; i++) {
-        sample = process(p);
+        sample = lpprocess(p);
         for(int c=0; c < channels; c++) {
-            fwrite(&sample, sizeof(double), 1, out);
+            fwrite(&sample, sizeof(lpfloat_t), 1, out);
         }
     }
 
