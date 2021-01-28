@@ -9,6 +9,10 @@ render:
 	./pulsar
 	sox -r 44100 -e float -b 64 -c 2 out.raw out.wav
 
+.PHONY: play
+play:
+	play out.wav
+
 .PHONY: clean
 clean:
 	rm pulsar
