@@ -32,15 +32,21 @@ typedef struct pulsar_t {
     lpfloat_t inc;
 } pulsar_t;
 
-typedef struct factory_t {
-    pulsar_t* (*create)(void);
+typedef struct pulsar_factory_t {
+    pulsar_t* (*create)(void*);
     void (*destroy)(pulsar_t*);
     lpfloat_t (*process)(pulsar_t*);
 
     // defaults
-} factory_t;
+    int samplerate;
+    int tablesize;
 
-extern const factory_t Pulsar;
+    lpfloat_t freq;
+    lpfloat_t modfreq;
+    lpfloat_t morphfreq;
+} pulsar_factory_t;
+
+extern pulsar_factory_t Pulsar;
 
 pulsar_t* init_pulsar(
     int tablesize, 
@@ -56,19 +62,19 @@ pulsar_t* init_pulsar(
     int numwins = paramcount(wins);
     int numbursts = paramcount(burst);
 
-    pulsar_t* p = (pulsar_t*)malloc(sizeof(pulsar_t));
+    pulsar_t* p = (pulsar_t*)calloc(1, sizeof(pulsar_t));
 
-    p->wts = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwts);
+    p->wts = (lpfloat_t**)calloc(numwts, sizeof(lpfloat_t*));
     for(int i=0; i < numwts; i++) {
-        p->wts[i] = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
+        p->wts[i] = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
     }
 
-    p->wins = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwins);
+    p->wins = (lpfloat_t**)calloc(numwins, sizeof(lpfloat_t*));
     for(int i=0; i < numwins; i++) {
-        p->wins[i] = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
+        p->wins[i] = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
     }
 
-    p->burst = (int*)malloc(sizeof(int) * numbursts);
+    p->burst = (int*)calloc(numbursts, sizeof(int));
 
     parsewts(p->wts, wts, numwts, tablesize);
     parsewins(p->wins, wins, numwins, tablesize);
@@ -83,8 +89,8 @@ pulsar_t* init_pulsar(
     p->burstboundry = numbursts - 1;
     if(p->burstboundry <= 1) burst = NULL; // Disable burst for single value tables
 
-    p->mod = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
-    p->morph = (lpfloat_t*)malloc(sizeof(lpfloat_t) * tablesize);
+    p->mod = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
+    p->morph = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
     window_sine(p->mod, tablesize);
     window_sine(p->morph, tablesize);
 
@@ -171,19 +177,13 @@ lpfloat_t process_pulsar(pulsar_t* p) {
     return sample * mod;
 }
 
-pulsar_t* create_pulsar(void) {
-    int samplerate = 44100;
-    int tablesize = 4096;
-
-    lpfloat_t modfreq = 0.03;
-    lpfloat_t morphfreq = 0.3;
-    lpfloat_t freq = 220.0;
-
+pulsar_t* create_pulsar(void* p) {
+    pulsar_factory_t* params = (pulsar_factory_t*)p;
     char wts[] = "sine,square,tri,sine";
     char wins[] = "sine,hann,sine";
     char burst[] = "1,1,0,1";
 
-    return init_pulsar(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
+    return init_pulsar(params->tablesize, params->freq, params->modfreq, params->morphfreq, wts, wins, burst, params->samplerate);
 }
 
 void destroy_pulsar(pulsar_t* p) {
@@ -203,12 +203,16 @@ void destroy_pulsar(pulsar_t* p) {
     free(p);
 }
 
-const factory_t Pulsar = {
+pulsar_factory_t Pulsar = {
     .create = create_pulsar, 
     .destroy = destroy_pulsar,
-    .process = process_pulsar
+    .process = process_pulsar,
 
-    // defaults
+    .samplerate = 44100,
+    .tablesize = 4096,
+    .freq = 220.0,
+    .modfreq = 0.03, 
+    .morphfreq = 0.3
 };
 
 #endif

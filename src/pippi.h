@@ -29,12 +29,11 @@ int imax(int a, int b) {
 lpfloat_t interpolate(lpfloat_t* wt, int boundry, lpfloat_t phase) {
     lpfloat_t frac = phase - (int)phase;
     int i = (int)phase;
-    lpfloat_t a, b;
 
-    if (i >= boundry) return 0;
+    if (i >= boundry || i < 0) return 0;
 
-    a = wt[i];
-    b = wt[i+1];
+    lpfloat_t a = wt[i];
+    lpfloat_t b = wt[i+1];
 
     return (1.0 - frac) * a + (frac * b);
 }
