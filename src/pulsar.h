@@ -7,8 +7,6 @@
 
 #include <pippi.h>
 
-typedef lpfloat_t* (*generator)(int);
-
 typedef struct pulsar_t {
     lpfloat_t **wts;  // Wavetable stack
     lpfloat_t **wins; // Window stack
@@ -32,21 +30,22 @@ typedef struct pulsar_t {
     lpfloat_t inc;
 } pulsar_t;
 
-typedef struct pulsar_factory_t {
-    pulsar_t* (*create)(void*);
-    void (*destroy)(pulsar_t*);
-    lpfloat_t (*process)(pulsar_t*);
-
-    // defaults
+typedef struct pulsar_args_t {
     int samplerate;
     int tablesize;
-
     lpfloat_t freq;
     lpfloat_t modfreq;
     lpfloat_t morphfreq;
+} pulsar_args_t;
+
+typedef struct pulsar_factory_t {
+    pulsar_t* (*create)(pulsar_args_t*);
+    void (*destroy)(pulsar_t*, pulsar_args_t*);
+    lpfloat_t (*process)(pulsar_t*);
+    pulsar_args_t* (*args)(void);
 } pulsar_factory_t;
 
-extern pulsar_factory_t Pulsar;
+extern const pulsar_factory_t Pulsar;
 
 pulsar_t* init_pulsar(
     int tablesize, 
@@ -177,16 +176,15 @@ lpfloat_t process_pulsar(pulsar_t* p) {
     return sample * mod;
 }
 
-pulsar_t* create_pulsar(void* p) {
-    pulsar_factory_t* params = (pulsar_factory_t*)p;
+pulsar_t* create_pulsar(pulsar_args_t* args) {
+    // FIXME move wt routines out and elminate this extra step
     char wts[] = "sine,square,tri,sine";
     char wins[] = "sine,hann,sine";
     char burst[] = "1,1,0,1";
-
-    return init_pulsar(params->tablesize, params->freq, params->modfreq, params->morphfreq, wts, wins, burst, params->samplerate);
+    return init_pulsar(args->tablesize, args->freq, args->modfreq, args->morphfreq, wts, wins, burst, args->samplerate);
 }
 
-void destroy_pulsar(pulsar_t* p) {
+void destroy_pulsar(pulsar_t* p, pulsar_args_t* a) {
     for(int i=0; i < p->numwts; i++) {
         free(p->wts[i]);
     }
@@ -201,18 +199,25 @@ void destroy_pulsar(pulsar_t* p) {
     free(p->morph);
     free(p->burst);
     free(p);
+
+    free(a);
 }
 
-pulsar_factory_t Pulsar = {
+pulsar_args_t* default_pulsar_args(void) {
+    pulsar_args_t* args = (pulsar_args_t*)calloc(1, sizeof(pulsar_args_t));
+    args->samplerate = 44100;
+    args->tablesize = 4096;
+    args->freq = 220.0;
+    args->modfreq = 0.03;
+    args->morphfreq = 0.3;
+    return args;
+}
+
+const pulsar_factory_t Pulsar = {
     .create = create_pulsar, 
     .destroy = destroy_pulsar,
     .process = process_pulsar,
-
-    .samplerate = 44100,
-    .tablesize = 4096,
-    .freq = 220.0,
-    .modfreq = 0.03, 
-    .morphfreq = 0.3
+    .args = default_pulsar_args
 };
 
 #endif
