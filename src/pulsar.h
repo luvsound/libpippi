@@ -1,24 +1,15 @@
+#ifndef _LP_PULSAR_H
+#define _LP_PULSAR_H
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <string.h>
 
-#ifndef PI
-#define PI 3.14159265
-#endif
-
-#ifdef LPCOMPACT
-typedef float lpfloat_t;
-#endif
-
-#ifndef LPCOMPACT
-typedef double lpfloat_t;
-#endif
+#include <pippi.h>
 
 typedef lpfloat_t* (*generator)(int);
 
-typedef struct Pulsar {
+typedef struct pulsar_t {
     lpfloat_t **wts;  // Wavetable stack
     lpfloat_t **wins; // Window stack
     lpfloat_t *mod;   // Pulsewidth modulation table
@@ -39,175 +30,19 @@ typedef struct Pulsar {
     lpfloat_t modfreq;
     lpfloat_t morphfreq;
     lpfloat_t inc;
-} Pulsar;
+} pulsar_t;
 
+typedef struct factory_t {
+    pulsar_t* (*create)(void);
+    void (*destroy)(pulsar_t*);
+    lpfloat_t (*process)(pulsar_t*);
 
+    // defaults
+} factory_t;
 
-/* Utilities
- *
- * Small collection of utility functions
- */
-int imax(int a, int b) {
-    if(a > b) {
-        return a;
-    } else {
-        return b;
-    }
-}
+extern const factory_t Pulsar;
 
-lpfloat_t interpolate(lpfloat_t* wt, int boundry, lpfloat_t phase) {
-    lpfloat_t frac = phase - (int)phase;
-    int i = (int)phase;
-    lpfloat_t a, b;
-
-    if (i >= boundry) return 0;
-
-    a = wt[i];
-    b = wt[i+1];
-
-    return (1.0 - frac) * a + (frac * b);
-}
-
-int paramcount(char* str) {
-    int count = 1;
-    int i = 0;
-
-    while(str[i] != '\0') {
-        char c = str[i];
-        i += 1;
-        if(c == ',') {
-            count += 1;
-        }
-    }
-
-    return count;
-}
-
-
-/* Wavetable generators
- * 
- * All these functions return a table of values 
- * of the given length with values between -1 and 1
- */
-void wavetable_sine(lpfloat_t* out, int length) {
-    for(int i=0; i < length; i++) {
-        out[i] = sin((i/(lpfloat_t)length) * PI * 2.0);         
-    }
-}
-
-void wavetable_square(lpfloat_t* out, int length) {
-    for(int i=0; i < length; i++) {
-        if(i < (length/2.0)) {
-            out[i] = 0.9999;
-        } else {
-            out[i] = -0.9999;
-        }
-    }
-}
-
-void wavetable_tri(lpfloat_t* out, int length) {
-    for(int i=0; i < length; i++) {
-        out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0) * 2.0 - 1.0;      
-    }
-}
-
-
-
-/* Window generators
- *
- * All these functions return a table of values 
- * of the given length with values between 0 and 1
- */
-void window_phasor(lpfloat_t* out, int length) {
-    for(int i=0; i < length; i++) {
-        out[i] = i/(lpfloat_t)length;      
-    }
-}
-
-void window_tri(lpfloat_t* out, int length) {
-    for(int i=0; i < length; i++) {
-        out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0);      
-    }
-}
-
-void window_sine(lpfloat_t* out, int length) {
-    for(int i=0; i < length; i++) {
-        out[i] = sin((i/(lpfloat_t)length) * PI);         
-    }
-}
-
-void window_hanning(lpfloat_t* out, int length) {
-    assert(length > 1);
-    for(int i=0; i < length; i++) {
-        out[i] = 0.5 - 0.5 * cos(2.0 * PI * i / (length-1.0));
-    }
-}
-
-
-/* Param parsers
- */
-void parsewts(lpfloat_t** wts, char* str, int numwts, int tablesize) {
-    char sep[] = ",";
-    char* token = strtok(str, sep);
-    int i = 0;
-    while(token != NULL) {
-        if (strcmp(token, "sine") == 0) {
-            wavetable_sine(wts[i], tablesize);            
-        } else if (strcmp(token, "tri") == 0) {
-            wavetable_tri(wts[i], tablesize);            
-        } else if (strcmp(token, "square") == 0) {
-            wavetable_square(wts[i], tablesize);            
-        } else {
-            wavetable_sine(wts[i], tablesize);            
-        }
-
-        token = strtok(NULL, sep);
-        i += 1;
-    }
-}
-
-void parsewins(lpfloat_t** wins, char* str, int numwins, int tablesize) {
-    char sep[] = ",";
-    char* token = strtok(str, sep);
-    int i = 0;
-    while(token != NULL) {
-        if (strcmp(token, "sine") == 0) {
-            window_sine(wins[i], tablesize);            
-        } else if (strcmp(token, "tri") == 0) {
-            window_tri(wins[i], tablesize);            
-        } else if (strcmp(token, "phasor") == 0) {
-            window_phasor(wins[i], tablesize);            
-        } else if (strcmp(token, "hann") == 0) {
-            window_hanning(wins[i], tablesize);            
-        } else {
-            window_sine(wins[i], tablesize);            
-        }
-
-        token = strtok(NULL, sep);
-        i += 1;
-    }
-}
-
-void parseburst(int* burst, char* str, int numbursts) {
-    char sep[] = ",";
-    char* token = strtok(str, sep);
-    int i = 0;
-
-    burst[i] = atoi(token);
-    while(token != NULL) {
-        token = strtok(NULL, sep);
-        if(token != NULL) burst[i] = atoi(token);
-        i += 1;
-    }
-}
-
-
-
-/* Pulsar lifecycle functions
- *
- * init -> process -> cleanup
- */
-Pulsar* init_pulsar(
+pulsar_t* init_pulsar(
     int tablesize, 
     lpfloat_t freq, 
     lpfloat_t modfreq, 
@@ -221,7 +56,7 @@ Pulsar* init_pulsar(
     int numwins = paramcount(wins);
     int numbursts = paramcount(burst);
 
-    Pulsar* p = (Pulsar*)malloc(sizeof(Pulsar));
+    pulsar_t* p = (pulsar_t*)malloc(sizeof(pulsar_t));
 
     p->wts = (lpfloat_t**)malloc(sizeof(lpfloat_t*) * numwts);
     for(int i=0; i < numwts; i++) {
@@ -266,7 +101,7 @@ Pulsar* init_pulsar(
     return p;
 }
 
-lpfloat_t process_pulsar_sample(Pulsar* p) {
+lpfloat_t process_pulsar(pulsar_t* p) {
     // Get the pulsewidth and inverse pulsewidth if the pulsewidth 
     // is zero, skip everything except phase incrementing and return 
     // a zero down the line.
@@ -336,7 +171,22 @@ lpfloat_t process_pulsar_sample(Pulsar* p) {
     return sample * mod;
 }
 
-void cleanup_pulsar(Pulsar* p) {
+pulsar_t* create_pulsar(void) {
+    int samplerate = 44100;
+    int tablesize = 4096;
+
+    lpfloat_t modfreq = 0.03;
+    lpfloat_t morphfreq = 0.3;
+    lpfloat_t freq = 220.0;
+
+    char wts[] = "sine,square,tri,sine";
+    char wins[] = "sine,hann,sine";
+    char burst[] = "1,1,0,1";
+
+    return init_pulsar(tablesize, freq, modfreq, morphfreq, wts, wins, burst, samplerate);
+}
+
+void destroy_pulsar(pulsar_t* p) {
     for(int i=0; i < p->numwts; i++) {
         free(p->wts[i]);
     }
@@ -353,4 +203,12 @@ void cleanup_pulsar(Pulsar* p) {
     free(p);
 }
 
+const factory_t Pulsar = {
+    .create = create_pulsar, 
+    .destroy = destroy_pulsar,
+    .process = process_pulsar
 
+    // defaults
+};
+
+#endif

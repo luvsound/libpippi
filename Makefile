@@ -1,18 +1,23 @@
-all: build render
+CFLAGS += -I/usr/local/include
+LDFLAGS += -L/usr/local/lib
 
-.PHONY: build
-build:
-	gcc -lm example.c -o pulsar
+all: install examples
 
-.PHONY: render
-render:
-	./pulsar
-	sox -r 44100 -e float -b 64 -c 2 out.raw out.wav
+install:
+	sudo cp src/pippi.h /usr/local/include/pippi.h
+	sudo cp src/wavetables.h /usr/local/include/wavetables.h
+	sudo cp src/pulsar.h /usr/local/include/pulsar.h
+	mkdir -p build renders
 
-.PHONY: play
-play:
-	play out.wav
+examples: ex1
+
+.PHONY: ex1
+ex1:
+	gcc -lm examples/pulsar.c -o build/pulsar
+	./build/pulsar
+	sox -r 44100 -e float -b 64 -c 2 renders/pulsar-out.raw renders/pulsar-out.wav
+	play renders/pulsar-out.wav
 
 .PHONY: clean
 clean:
-	rm pulsar
+	rm pulsar out.raw out.wav
