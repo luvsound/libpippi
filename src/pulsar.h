@@ -60,16 +60,18 @@ pulsar_t* init_pulsar(
     int numwts = paramcount(wts);
     int numwins = paramcount(wins);
     int numbursts = paramcount(burst);
+    int i;
 
     pulsar_t* p = (pulsar_t*)calloc(1, sizeof(pulsar_t));
 
     p->wts = (lpfloat_t**)calloc(numwts, sizeof(lpfloat_t*));
-    for(int i=0; i < numwts; i++) {
+
+    for(i=0; i < numwts; i++) {
         p->wts[i] = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
     }
 
     p->wins = (lpfloat_t**)calloc(numwins, sizeof(lpfloat_t*));
-    for(int i=0; i < numwins; i++) {
+    for(i=0; i < numwins; i++) {
         p->wins[i] = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
     }
 
@@ -185,11 +187,12 @@ pulsar_t* create_pulsar(pulsar_args_t* args) {
 }
 
 void destroy_pulsar(pulsar_t* p, pulsar_args_t* a) {
-    for(int i=0; i < p->numwts; i++) {
+    int i;
+    for(i=0; i < p->numwts; i++) {
         free(p->wts[i]);
     }
 
-    for(int i=0; i < p->numwins; i++) {
+    for(i=0; i < p->numwins; i++) {
         free(p->wins[i]);
     }
 
