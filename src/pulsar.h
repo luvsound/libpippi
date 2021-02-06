@@ -30,33 +30,27 @@ typedef struct pulsar_t {
     lpfloat_t inc;
 } pulsar_t;
 
-typedef struct pulsar_args_t {
-    int samplerate;
-    int tablesize;
-    lpfloat_t freq;
-    lpfloat_t modfreq;
-    lpfloat_t morphfreq;
-} pulsar_args_t;
-
 typedef struct pulsar_factory_t {
-    pulsar_t* (*create)(pulsar_args_t*);
-    void (*destroy)(pulsar_t*, pulsar_args_t*);
+    pulsar_t* (*create)(void);
+    void (*destroy)(pulsar_t*);
     lpfloat_t (*process)(pulsar_t*);
-    pulsar_args_t* (*args)(void);
 } pulsar_factory_t;
 
 extern const pulsar_factory_t Pulsar;
 
-pulsar_t* init_pulsar(
-    int tablesize, 
-    lpfloat_t freq, 
-    lpfloat_t modfreq, 
-    lpfloat_t morphfreq, 
-    char* wts, 
-    char* wins, 
-    char* burst,
-    lpfloat_t samplerate
-) {
+pulsar_t* create_pulsar(void) {
+    // Default args
+    lpfloat_t samplerate = 44100.0;
+    int tablesize = 4096;
+    lpfloat_t freq = 220.0;
+    lpfloat_t modfreq = 0.03;
+    lpfloat_t morphfreq = 0.3;
+
+    // FIXME -- better defaults
+    char wts[] = "sine,square,tri,sine";
+    char wins[] = "sine,hann,sine";
+    char burst[] = "1,1,0,1";
+
     int numwts = paramcount(wts);
     int numwins = paramcount(wins);
     int numbursts = paramcount(burst);
@@ -88,7 +82,7 @@ pulsar_t* init_pulsar(
     p->boundry = tablesize - 1;
     p->morphboundry = numwts - 1;
     p->burstboundry = numbursts - 1;
-    if(p->burstboundry <= 1) burst = NULL; // Disable burst for single value tables
+    if(p->burstboundry <= 1) p->burst = NULL; // Disable burst for single value tables
 
     p->mod = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
     p->morph = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
@@ -178,15 +172,7 @@ lpfloat_t process_pulsar(pulsar_t* p) {
     return sample * mod;
 }
 
-pulsar_t* create_pulsar(pulsar_args_t* args) {
-    // FIXME move wt routines out and elminate this extra step
-    char wts[] = "sine,square,tri,sine";
-    char wins[] = "sine,hann,sine";
-    char burst[] = "1,1,0,1";
-    return init_pulsar(args->tablesize, args->freq, args->modfreq, args->morphfreq, wts, wins, burst, args->samplerate);
-}
-
-void destroy_pulsar(pulsar_t* p, pulsar_args_t* a) {
+void destroy_pulsar(pulsar_t* p) {
     int i;
     for(i=0; i < p->numwts; i++) {
         free(p->wts[i]);
@@ -202,25 +188,12 @@ void destroy_pulsar(pulsar_t* p, pulsar_args_t* a) {
     free(p->morph);
     free(p->burst);
     free(p);
-
-    free(a);
-}
-
-pulsar_args_t* default_pulsar_args(void) {
-    pulsar_args_t* args = (pulsar_args_t*)calloc(1, sizeof(pulsar_args_t));
-    args->samplerate = 44100;
-    args->tablesize = 4096;
-    args->freq = 220.0;
-    args->modfreq = 0.03;
-    args->morphfreq = 0.3;
-    return args;
 }
 
 const pulsar_factory_t Pulsar = {
     .create = create_pulsar, 
     .destroy = destroy_pulsar,
     .process = process_pulsar,
-    .args = default_pulsar_args
 };
 
 #endif

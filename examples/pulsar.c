@@ -11,18 +11,16 @@ int main() {
     lpfloat_t sample = 0;
 
     pulsar_t* oscs[VOICES];
-    pulsar_args_t* args[VOICES];
 
     lpfloat_t freqs[VOICES] = {220., 330., 440., 550.};
     lpfloat_t morphs[VOICES] = {0.1, 0.2, 0.3, 0.4};
     lpfloat_t mods[VOICES] = {0.01, 0.02, 0.03, 0.04};
 
     for(i=0; i < VOICES; i++) {
-        args[i] = Pulsar.args();
-        args[i]->freq = freqs[i];
-        args[i]->morphfreq = morphs[i];
-        args[i]->modfreq = mods[i];
-        oscs[i] = Pulsar.create(args[i]);
+        oscs[i] = Pulsar.create();
+        oscs[i]->freq = freqs[i];
+        oscs[i]->morphfreq = morphs[i];
+        oscs[i]->modfreq = mods[i];
     }
 
     out = fopen("renders/pulsar-out.raw", "wb");
@@ -39,7 +37,7 @@ int main() {
     }
 
     for(v=0; v < VOICES; v++) {
-        Pulsar.destroy(oscs[v], args[v]);
+        Pulsar.destroy(oscs[v]);
     }
 
     fclose(out);
