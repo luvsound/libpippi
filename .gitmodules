@@ -1,0 +1,6 @@
+[submodule "vendor/dr_libs"]
+	path = vendor/dr_libs
+	url = git@github.com:luvsound/dr_libs.git
+[submodule "vendor/miniaudio"]
+	path = vendor/miniaudio
+	url = git@github.com:luvsound/miniaudio.git
