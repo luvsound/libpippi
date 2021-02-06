@@ -3,6 +3,8 @@
 
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* Wavetable generators
  * 
@@ -63,8 +65,8 @@ void window_sine(lpfloat_t* out, int length) {
 }
 
 void window_hanning(lpfloat_t* out, int length) {
-    assert(length > 1);
     int i;
+    assert(length > 1);
     for(i=0; i < length; i++) {
         out[i] = 0.5 - 0.5 * cos(2.0 * PI * i / (length-1.0));
     }
