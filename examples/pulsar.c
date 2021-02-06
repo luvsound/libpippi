@@ -6,6 +6,7 @@ int main() {
     int channels = 2;
     int length = 44100 * 60;
     int i, c, v;
+
     FILE *out;
     lpfloat_t sample = 0;
 

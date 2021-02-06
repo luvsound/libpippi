@@ -70,4 +70,61 @@ void window_hanning(lpfloat_t* out, int length) {
     }
 }
 
+
+/* Param parsers
+ */
+void parsewts(lpfloat_t** wts, char* str, int numwts, int tablesize) {
+    char sep[] = ",";
+    char* token = strtok(str, sep);
+    int i = 0;
+    while(token != NULL) {
+        if (strcmp(token, "sine") == 0) {
+            wavetable_sine(wts[i], tablesize);            
+        } else if (strcmp(token, "tri") == 0) {
+            wavetable_tri(wts[i], tablesize);            
+        } else if (strcmp(token, "square") == 0) {
+            wavetable_square(wts[i], tablesize);            
+        } else {
+            wavetable_sine(wts[i], tablesize);            
+        }
+
+        token = strtok(NULL, sep);
+        i += 1;
+    }
+}
+
+void parsewins(lpfloat_t** wins, char* str, int numwins, int tablesize) {
+    char sep[] = ",";
+    char* token = strtok(str, sep);
+    int i = 0;
+    while(token != NULL) {
+        if (strcmp(token, "sine") == 0) {
+            window_sine(wins[i], tablesize);            
+        } else if (strcmp(token, "tri") == 0) {
+            window_tri(wins[i], tablesize);            
+        } else if (strcmp(token, "phasor") == 0) {
+            window_phasor(wins[i], tablesize);            
+        } else if (strcmp(token, "hann") == 0) {
+            window_hanning(wins[i], tablesize);            
+        } else {
+            window_sine(wins[i], tablesize);            
+        }
+
+        token = strtok(NULL, sep);
+        i += 1;
+    }
+}
+
+void parseburst(int* burst, char* str, int numbursts) {
+    char sep[] = ",";
+    char* token = strtok(str, sep);
+    int i = 0;
+
+    burst[i] = atoi(token);
+    while(token != NULL) {
+        token = strtok(NULL, sep);
+        if(token != NULL) burst[i] = atoi(token);
+        i += 1;
+    }
+}
 #endif

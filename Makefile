@@ -5,6 +5,8 @@ all: install examples
 
 install:
 	sudo cp src/pippi.h /usr/local/include/pippi.h
+	sudo cp src/pippicore.h /usr/local/include/pippicore.h
+	sudo cp src/interpolation.h /usr/local/include/interpolation.h
 	sudo cp src/wavetables.h /usr/local/include/wavetables.h
 	sudo cp src/pulsar.h /usr/local/include/pulsar.h
 	mkdir -p build renders
