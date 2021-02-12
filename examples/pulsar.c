@@ -65,6 +65,10 @@ int main() {
         }
     }
 
+    if (count != 0) {
+        drwav_write_pcm_frames(&wav, count, buf);
+    }
+
     for(v=0; v < VOICES; v++) {
         Pulsar.destroy(oscs[v]);
     }
