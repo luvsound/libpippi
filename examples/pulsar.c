@@ -12,7 +12,6 @@ int main() {
     int length = SR * 60;
     int i, c, v;
 
-    FILE *out;
     lpfloat_t sample = 0;
     int count;
     float *buf;
@@ -33,7 +32,7 @@ int main() {
     format.sampleRate = SR;
     format.bitsPerSample = 32;
 
-    drwav_init_file_write(&wav, "pulsar.wav", &format, NULL);
+    drwav_init_file_write(&wav, "renders/pulsar-out.wav", &format, NULL);
 
     count = 0;
 
@@ -44,8 +43,6 @@ int main() {
         oscs[i]->modfreq = mods[i];
     }
 
-    out = fopen("renders/pulsar-out.raw", "wb");
-
     for(i=0; i < length; i++) {
         sample = 0;
         for(v=0; v < VOICES; v++) {
@@ -53,7 +50,6 @@ int main() {
         }
 
         for(c=0; c < CHANNELS; c++) {
-            fwrite(&sample, sizeof(lpfloat_t), 1, out);
             buf[count * CHANNELS + c] = sample;
         }
 
@@ -75,7 +71,6 @@ int main() {
 
     free(buf);
     drwav_uninit(&wav);
-    fclose(out);
     return 0;
 }
 
