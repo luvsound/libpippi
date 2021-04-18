@@ -6,6 +6,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "buffer.h"
+
+typedef struct wavetable_t {
+    size_t length;
+    double* data;
+} wavetable_t;
+    
+typedef struct wavetable_factory_t {
+    buffer_t* (*create)(char* name, size_t length);
+    void (*destroy)(buffer_t*);
+} wavetable_factory_t;
+
+
+
 /* Wavetable generators
  * 
  * All these functions return a table of values 
@@ -129,4 +143,18 @@ void parseburst(int* burst, char* str, int numbursts) {
         i += 1;
     }
 }
+
+buffer_t* create_wavetable(char* name, size_t length) {
+    buffer_t* buf = (buffer_t*)calloc(1, sizeof(buffer_t));
+    buf->data = (double*)calloc(length, sizeof(double));
+    return buf;
+}
+
+void destroy_wavetable(buffer_t* buf) {
+    free(buf->data);
+    free(buf);
+}
+
+const wavetable_factory_t Wavetable = { create_wavetable, destroy_wavetable };
+
 #endif

@@ -1,8 +1,10 @@
-#ifndef PIPPICORE_H
-#define PIPPICORE_H
+#ifndef LP_CORE_H
+#define LP_CORE_H
 
 #include <string.h>
 #include <math.h>
+
+#include "params.h"
 
 #ifdef LPFLOAT
 typedef float lpfloat_t;
@@ -13,6 +15,7 @@ typedef double lpfloat_t;
 #ifndef PI
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 #endif
+
 
 /* Utilities
  *
