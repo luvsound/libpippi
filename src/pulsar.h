@@ -8,19 +8,24 @@
 #include <pippi.h>
 
 typedef struct pulsar_t {
-    lpfloat_t **wts;  /* Wavetable stack */
-    lpfloat_t **wins; /* Window stack */
-    lpfloat_t *mod;   /* Pulsewidth modulation table */
-    lpfloat_t *morph; /* Morph table */
-    int* burst;    /* Burst table */
+    buffer_t** wts;   /* Wavetable stack */
+    buffer_t** wins;  /* Window stack */
     int numwts;    /* Number of wts in stack */
     int numwins;   /* Number of wins in stack */
+
+    buffer_t* mod;   /* Pulsewidth modulation table */
+    buffer_t* morph; /* Morph table */
+    int* burst;    /* Burst table */
+
     int tablesize; /* All tables should be this size */
+
     lpfloat_t samplerate;
+
     int boundry;
     int morphboundry;
     int burstboundry;
     int burstphase;
+
     lpfloat_t phase;
     lpfloat_t modphase;
     lpfloat_t morphphase;
@@ -54,21 +59,11 @@ pulsar_t* create_pulsar(void) {
     int numwts = paramcount(wts);
     int numwins = paramcount(wins);
     int numbursts = paramcount(burst);
-    int i;
 
     pulsar_t* p = (pulsar_t*)calloc(1, sizeof(pulsar_t));
 
-    p->wts = (lpfloat_t**)calloc(numwts, sizeof(lpfloat_t*));
-
-    for(i=0; i < numwts; i++) {
-        p->wts[i] = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
-    }
-
-    p->wins = (lpfloat_t**)calloc(numwins, sizeof(lpfloat_t*));
-    for(i=0; i < numwins; i++) {
-        p->wins[i] = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
-    }
-
+    p->wts = (buffer_t**)calloc(numwts, sizeof(buffer_t*));
+    p->wins = (buffer_t**)calloc(numwins, sizeof(buffer_t*));
     p->burst = (int*)calloc(numbursts, sizeof(int));
 
     parsewts(p->wts, wts, numwts, tablesize);
@@ -84,10 +79,8 @@ pulsar_t* create_pulsar(void) {
     p->burstboundry = numbursts - 1;
     if(p->burstboundry <= 1) p->burst = NULL; /* Disable burst for single value tables */
 
-    p->mod = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
-    p->morph = (lpfloat_t*)calloc(tablesize, sizeof(lpfloat_t));
-    window_sine(p->mod, tablesize);
-    window_sine(p->morph, tablesize);
+    p->mod = create_window("sine", tablesize);
+    p->morph = create_window("sine", tablesize);
 
     p->burstphase = 0;
     p->phase = 0;
@@ -107,7 +100,7 @@ lpfloat_t process_pulsar(pulsar_t* p) {
      * is zero, skip everything except phase incrementing and return 
      * a zero down the line.
      */
-    lpfloat_t pw = interpolate(p->mod, p->boundry, p->modphase);
+    lpfloat_t pw = interpolate(p->mod->data, p->boundry, p->modphase);
     lpfloat_t ipw = 0;
 
     lpfloat_t sample = 0;
@@ -128,12 +121,12 @@ lpfloat_t process_pulsar(pulsar_t* p) {
     }
 
     if(ipw > 0 && burst > 0) {
-        morphpos = interpolate(p->morph, p->boundry, p->morphphase);
+        morphpos = interpolate(p->morph->data, p->boundry, p->morphphase);
 
         assert(p->numwts >= 1);
         if(p->numwts == 1) {
             /* If there is just a single wavetable in the stack, get the current value */
-            sample = interpolate(p->wts[0], p->boundry, p->phase * ipw);
+            sample = interpolate(p->wts[0]->data, p->boundry, p->phase * ipw);
         } else {
             /* If there are multiple wavetables in the stack, get their values  
              * and then interpolate the value at the morph position between them.
@@ -141,15 +134,15 @@ lpfloat_t process_pulsar(pulsar_t* p) {
             wtmorphpos = morphpos * imax(1, p->numwts-1);
             wtmorphidx = (int)wtmorphpos;
             wtmorphfrac = wtmorphpos - wtmorphidx;
-            a = interpolate(p->wts[wtmorphidx], p->boundry, p->phase * ipw);
-            b = interpolate(p->wts[wtmorphidx+1], p->boundry, p->phase * ipw);
+            a = interpolate(p->wts[wtmorphidx]->data, p->boundry, p->phase * ipw);
+            b = interpolate(p->wts[wtmorphidx+1]->data, p->boundry, p->phase * ipw);
             sample = (1.0 - wtmorphfrac) * a + (wtmorphfrac * b);
         }
 
         assert(p->numwins >= 1);
         if(p->numwins == 1) {
             /* If there is just a single window in the stack, get the current value */
-            mod = interpolate(p->wins[0], p->boundry, p->phase * ipw);
+            mod = interpolate(p->wins[0]->data, p->boundry, p->phase * ipw);
         } else {
             /* If there are multiple wavetables in the stack, get their values 
              * and then interpolate the value at the morph position between them.
@@ -157,8 +150,8 @@ lpfloat_t process_pulsar(pulsar_t* p) {
             winmorphpos = morphpos * imax(1, p->numwins-1);
             winmorphidx = (int)winmorphpos;
             winmorphfrac = winmorphpos - winmorphidx;
-            a = interpolate(p->wins[winmorphidx], p->boundry, p->phase * ipw);
-            b = interpolate(p->wins[winmorphidx+1], p->boundry, p->phase * ipw);
+            a = interpolate(p->wins[winmorphidx]->data, p->boundry, p->phase * ipw);
+            b = interpolate(p->wins[winmorphidx+1]->data, p->boundry, p->phase * ipw);
             mod = (1.0 - winmorphfrac) * a + (winmorphfrac * b);
         }
     }

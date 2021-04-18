@@ -14,9 +14,14 @@ typedef struct wavetable_t {
 } wavetable_t;
     
 typedef struct wavetable_factory_t {
-    buffer_t* (*create)(char* name, size_t length);
-    void (*destroy)(buffer_t*);
+    buffer_t* (*wt)(char* name, size_t length);
+    buffer_t* (*win)(char* name, size_t length);
 } wavetable_factory_t;
+
+
+/* forward declarations */
+buffer_t* create_wavetable(char* name, size_t length);
+buffer_t* create_window(char* name, size_t length);
 
 
 
@@ -87,74 +92,76 @@ void window_hanning(lpfloat_t* out, int length) {
 }
 
 
-/* Param parsers
- */
-void parsewts(lpfloat_t** wts, char* str, int numwts, int tablesize) {
+/* Create a wavetable stack from a string literal */
+void parsewts(buffer_t** wts, char* str, int numwts, int tablesize) {
     char sep[] = ",";
-    char* token = strtok(str, sep);
+    char* name = strtok(str, sep);
     int i = 0;
-    while(token != NULL) {
-        if (strcmp(token, "sine") == 0) {
-            wavetable_sine(wts[i], tablesize);            
-        } else if (strcmp(token, "tri") == 0) {
-            wavetable_tri(wts[i], tablesize);            
-        } else if (strcmp(token, "square") == 0) {
-            wavetable_square(wts[i], tablesize);            
-        } else {
-            wavetable_sine(wts[i], tablesize);            
-        }
-
-        token = strtok(NULL, sep);
+    while(name != NULL) {
+        wts[i] = create_wavetable(name, tablesize);
+        name = strtok(NULL, sep);
         i += 1;
     }
 }
 
-void parsewins(lpfloat_t** wins, char* str, int numwins, int tablesize) {
+/* Create a window stack from a string literal */
+void parsewins(buffer_t** wins, char* str, int numwins, int tablesize) {
     char sep[] = ",";
-    char* token = strtok(str, sep);
+    char* name = strtok(str, sep);
     int i = 0;
-    while(token != NULL) {
-        if (strcmp(token, "sine") == 0) {
-            window_sine(wins[i], tablesize);            
-        } else if (strcmp(token, "tri") == 0) {
-            window_tri(wins[i], tablesize);            
-        } else if (strcmp(token, "phasor") == 0) {
-            window_phasor(wins[i], tablesize);            
-        } else if (strcmp(token, "hann") == 0) {
-            window_hanning(wins[i], tablesize);            
-        } else {
-            window_sine(wins[i], tablesize);            
-        }
-
-        token = strtok(NULL, sep);
+    while(name != NULL) {
+        wins[i] = create_window(name, tablesize);
+        name = strtok(NULL, sep);
         i += 1;
     }
 }
 
+/* Create a burst table from a string literal */
 void parseburst(int* burst, char* str, int numbursts) {
     char sep[] = ",";
-    char* token = strtok(str, sep);
+    char* name = strtok(str, sep);
     int i = 0;
 
-    burst[i] = atoi(token);
-    while(token != NULL) {
-        token = strtok(NULL, sep);
-        if(token != NULL) burst[i] = atoi(token);
+    burst[i] = atoi(name);
+    while(name != NULL) {
+        name = strtok(NULL, sep);
+        if(name != NULL) burst[i] = atoi(name);
         i += 1;
     }
 }
 
+/* create a wavetable (-1 to 1) */
 buffer_t* create_wavetable(char* name, size_t length) {
-    buffer_t* buf = (buffer_t*)calloc(1, sizeof(buffer_t));
-    buf->data = (double*)calloc(length, sizeof(double));
+    buffer_t* buf = init_buffer(length, 1, -1);
+    if(strcmp(name, SINE) == 0) {
+        wavetable_sine(buf->data, length);            
+    } else if (strcmp(name, TRI) == 0) {
+        wavetable_tri(buf->data, length);            
+    } else if (strcmp(name, SQUARE) == 0) {
+        wavetable_square(buf->data, length);            
+    } else {
+        wavetable_sine(buf->data, length);            
+    }
     return buf;
 }
 
-void destroy_wavetable(buffer_t* buf) {
-    free(buf->data);
-    free(buf);
+/* create a window (0 to 1) */
+buffer_t* create_window(char* name, size_t length) {
+    buffer_t* buf = init_buffer(length, 1, -1);
+    if(strcmp(name, SINE) == 0) {
+        window_sine(buf->data, length);            
+    } else if (strcmp(name, TRI) == 0) {
+        window_tri(buf->data, length);            
+    } else if (strcmp(name, PHASOR) == 0) {
+        window_phasor(buf->data, length);            
+    } else if (strcmp(name, HANN) == 0) {
+        window_hanning(buf->data, length);            
+    } else {
+        window_sine(buf->data, length);            
+    }
+    return buf;
 }
 
-const wavetable_factory_t Wavetable = { create_wavetable, destroy_wavetable };
+const wavetable_factory_t Wavetable = { create_wavetable, create_window };
 
 #endif

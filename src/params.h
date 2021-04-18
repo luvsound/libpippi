@@ -3,5 +3,8 @@
 
 #define SINE "sine"
 #define SQUARE "square"
+#define TRI "tri"
+#define PHASOR "phasor"
+#define HANN "hann"
 
 #endif
