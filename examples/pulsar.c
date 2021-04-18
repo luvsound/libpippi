@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include "pippi.h"
-#include "soundfiles.h"
 
 #define VOICES 4
 #define CHANNELS 2
@@ -17,7 +15,7 @@ int main() {
     lpfloat_t morphs[VOICES] = {0.1, 0.2, 0.3, 0.4};
     lpfloat_t mods[VOICES] = {0.01, 0.02, 0.03, 0.04};
 
-    buffer_t* buf = init_buffer(length, CHANNELS, SR);    
+    buffer_t* buf = Pippi.buffer(length, CHANNELS, SR);    
 
     for(i=0; i < VOICES; i++) {
         oscs[i] = Pulsar.create();
@@ -43,7 +41,7 @@ int main() {
         Pulsar.destroy(oscs[v]);
     }
 
-    destroy_buffer(buf);
+    Pippi.destroy_buffer(buf);
 
     return 0;
 }

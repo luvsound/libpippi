@@ -1,7 +1,7 @@
 #ifndef LP_SOUNDBUFFER_H
 #define LP_SOUNDBUFFER_H
 
-#include "buffer.h"
+#include "pippicore.h"
 
 typedef struct soundbuffer_factory_t {
     buffer_t* (*create)(char* name);

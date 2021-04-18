@@ -1,47 +1,45 @@
 #ifndef LP_CORE_H
 #define LP_CORE_H
 
+/* std includes */
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
-#include "params.h"
-
+/* TYPES */
 #ifdef LPFLOAT
 typedef float lpfloat_t;
 #else
 typedef double lpfloat_t;
 #endif
 
+/* CONSTANTS */
 #ifndef PI
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 #endif
 
+#define SINE "sine"
+#define SQUARE "square"
+#define TRI "tri"
+#define PHASOR "phasor"
+#define HANN "hann"
 
-/* Utilities
- *
- * Small collection of utility functions
- */
-int imax(int a, int b) {
-    if(a > b) {
-        return a;
-    } else {
-        return b;
-    }
-}
+typedef struct buffer_t {
+    lpfloat_t* data;
+    size_t length;
+    int samplerate;
+    int channels;
+} buffer_t;
 
-int paramcount(char* str) {
-    int count = 1;
-    int i = 0;
+typedef struct pippi_factory_t {
+    /* create buffer */
+    buffer_t* (*buffer)(size_t, int, int);
+    /* destroy buffer */
+    void (*destroy_buffer)(buffer_t*);
+} pippi_factory_t;
 
-    while(str[i] != '\0') {
-        char c = str[i];
-        i += 1;
-        if(c == ',') {
-            count += 1;
-        }
-    }
-
-    return count;
-}
+extern const pippi_factory_t Pippi;
 
 #endif

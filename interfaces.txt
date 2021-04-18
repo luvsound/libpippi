@@ -1,0 +1,50 @@
+# Just an outline to help think through refactoring...
+
+interpolation.h: pippicore.h
+    interpolation()
+
+pippicore.h: assert.h, stdlib.h, stdio.h, string.h, math.h
+    lpfloat_t
+    buffer_t
+
+    PI
+    SINE
+    SQUARE
+    TRI
+    PHASOR
+    HANN
+
+    Pippi.buffer()
+    Pippi.destroy_buffer()
+    
+
+pulsar.h: pippicore.h
+    pulsar_t
+
+    Pulsar.create()
+    Pulsar.process()
+    Pulsar.destroy()
+
+soundbuffer.h: pippicore.h
+    SoundBuffer.create()
+    SoundBuffer.destroy()
+
+soundfiles.h: pippicore.h
+    write_soundfile()
+
+wavetables.h: pippicore.h
+    Wavetable.wt()
+    Wavetable.win()
+
+pippi.h: pippicore.h, soundfiles.h, interpolation.h, wavetables.h, pulsar.h
+
+
+
+## clibrary
+
+stdlib.h
+stdio.h
+string.h
+assert.h
+math.h
+

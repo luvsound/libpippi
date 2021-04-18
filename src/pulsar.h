@@ -1,11 +1,7 @@
-#ifndef _LP_PULSAR_H
-#define _LP_PULSAR_H
+#ifndef LP_PULSAR_H
+#define LP_PULSAR_H
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <pippi.h>
+#include "pippicore.h"
 
 typedef struct pulsar_t {
     buffer_t** wts;   /* Wavetable stack */
@@ -56,9 +52,9 @@ pulsar_t* create_pulsar(void) {
     char wins[] = "sine,hann,sine";
     char burst[] = "1,1,0,1";
 
-    int numwts = paramcount(wts);
-    int numwins = paramcount(wins);
-    int numbursts = paramcount(burst);
+    int numwts = 4;
+    int numwins = 3;
+    int numbursts = 4;
 
     pulsar_t* p = (pulsar_t*)calloc(1, sizeof(pulsar_t));
 
@@ -109,10 +105,10 @@ lpfloat_t process_pulsar(pulsar_t* p) {
     lpfloat_t morphpos = 0;
 
     lpfloat_t wtmorphpos, wtmorphfrac, a, b;
-    int wtmorphidx;
+    int wtmorphidx, wtmorphmul;
 
     lpfloat_t winmorphpos, winmorphfrac;
-    int winmorphidx;
+    int winmorphidx, winmorphmul;
 
     if(pw > 0) ipw = 1.0/pw;
 
@@ -131,7 +127,8 @@ lpfloat_t process_pulsar(pulsar_t* p) {
             /* If there are multiple wavetables in the stack, get their values  
              * and then interpolate the value at the morph position between them.
              */
-            wtmorphpos = morphpos * imax(1, p->numwts-1);
+            wtmorphmul = p->numwts-1 > 1 ? p->numwts-1 : 1;
+            wtmorphpos = morphpos * wtmorphmul;
             wtmorphidx = (int)wtmorphpos;
             wtmorphfrac = wtmorphpos - wtmorphidx;
             a = interpolate(p->wts[wtmorphidx]->data, p->boundry, p->phase * ipw);
@@ -147,7 +144,8 @@ lpfloat_t process_pulsar(pulsar_t* p) {
             /* If there are multiple wavetables in the stack, get their values 
              * and then interpolate the value at the morph position between them.
              */
-            winmorphpos = morphpos * imax(1, p->numwins-1);
+            winmorphmul = p->numwins-1 > 1 ? p->numwins-1 : 1;
+            winmorphpos = morphpos * winmorphmul;
             winmorphidx = (int)winmorphpos;
             winmorphfrac = winmorphpos - winmorphidx;
             a = interpolate(p->wins[winmorphidx]->data, p->boundry, p->phase * ipw);
