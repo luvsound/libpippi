@@ -1,8 +1,5 @@
 # Just an outline to help think through refactoring...
 
-interpolation.h: pippicore.h
-    interpolation()
-
 pippicore.h: assert.h, stdlib.h, stdio.h, string.h, math.h
     lpfloat_t
     buffer_t
@@ -17,13 +14,8 @@ pippicore.h: assert.h, stdlib.h, stdio.h, string.h, math.h
     Pippi.buffer()
     Pippi.destroy_buffer()
     
-
-pulsar.h: pippicore.h
-    pulsar_t
-
-    Pulsar.create()
-    Pulsar.process()
-    Pulsar.destroy()
+interpolation.h: pippicore.h
+    Interpolation.linear()
 
 soundbuffer.h: pippicore.h
     SoundBuffer.create()
@@ -36,15 +28,13 @@ wavetables.h: pippicore.h
     Wavetable.wt()
     Wavetable.win()
 
+pulsar.h: pippicore.h
+    pulsar_t
+
+    Pulsar.create()
+    Pulsar.process()
+    Pulsar.destroy()
+
+# user-facing header (except for embedded...)
 pippi.h: pippicore.h, soundfiles.h, interpolation.h, wavetables.h, pulsar.h
-
-
-
-## clibrary
-
-stdlib.h
-stdio.h
-string.h
-assert.h
-math.h
 

@@ -96,7 +96,7 @@ lpfloat_t process_pulsar(pulsar_t* p) {
      * is zero, skip everything except phase incrementing and return 
      * a zero down the line.
      */
-    lpfloat_t pw = interpolate(p->mod->data, p->boundry, p->modphase);
+    lpfloat_t pw = Interpolation.linear(p->mod->data, p->boundry, p->modphase);
     lpfloat_t ipw = 0;
 
     lpfloat_t sample = 0;
@@ -117,12 +117,12 @@ lpfloat_t process_pulsar(pulsar_t* p) {
     }
 
     if(ipw > 0 && burst > 0) {
-        morphpos = interpolate(p->morph->data, p->boundry, p->morphphase);
+        morphpos = Interpolation.linear(p->morph->data, p->boundry, p->morphphase);
 
         assert(p->numwts >= 1);
         if(p->numwts == 1) {
             /* If there is just a single wavetable in the stack, get the current value */
-            sample = interpolate(p->wts[0]->data, p->boundry, p->phase * ipw);
+            sample = Interpolation.linear(p->wts[0]->data, p->boundry, p->phase * ipw);
         } else {
             /* If there are multiple wavetables in the stack, get their values  
              * and then interpolate the value at the morph position between them.
@@ -131,15 +131,15 @@ lpfloat_t process_pulsar(pulsar_t* p) {
             wtmorphpos = morphpos * wtmorphmul;
             wtmorphidx = (int)wtmorphpos;
             wtmorphfrac = wtmorphpos - wtmorphidx;
-            a = interpolate(p->wts[wtmorphidx]->data, p->boundry, p->phase * ipw);
-            b = interpolate(p->wts[wtmorphidx+1]->data, p->boundry, p->phase * ipw);
+            a = Interpolation.linear(p->wts[wtmorphidx]->data, p->boundry, p->phase * ipw);
+            b = Interpolation.linear(p->wts[wtmorphidx+1]->data, p->boundry, p->phase * ipw);
             sample = (1.0 - wtmorphfrac) * a + (wtmorphfrac * b);
         }
 
         assert(p->numwins >= 1);
         if(p->numwins == 1) {
             /* If there is just a single window in the stack, get the current value */
-            mod = interpolate(p->wins[0]->data, p->boundry, p->phase * ipw);
+            mod = Interpolation.linear(p->wins[0]->data, p->boundry, p->phase * ipw);
         } else {
             /* If there are multiple wavetables in the stack, get their values 
              * and then interpolate the value at the morph position between them.
@@ -148,8 +148,8 @@ lpfloat_t process_pulsar(pulsar_t* p) {
             winmorphpos = morphpos * winmorphmul;
             winmorphidx = (int)winmorphpos;
             winmorphfrac = winmorphpos - winmorphidx;
-            a = interpolate(p->wins[winmorphidx]->data, p->boundry, p->phase * ipw);
-            b = interpolate(p->wins[winmorphidx+1]->data, p->boundry, p->phase * ipw);
+            a = Interpolation.linear(p->wins[winmorphidx]->data, p->boundry, p->phase * ipw);
+            b = Interpolation.linear(p->wins[winmorphidx+1]->data, p->boundry, p->phase * ipw);
             mod = (1.0 - winmorphfrac) * a + (winmorphfrac * b);
         }
     }
