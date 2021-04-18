@@ -15,7 +15,7 @@ int main() {
     lpfloat_t morphs[VOICES] = {0.1, 0.2, 0.3, 0.4};
     lpfloat_t mods[VOICES] = {0.01, 0.02, 0.03, 0.04};
 
-    buffer_t* buf = Pippi.buffer(length, CHANNELS, SR);    
+    buffer_t* buf = Buffer.create(length, CHANNELS, SR);    
 
     for(i=0; i < VOICES; i++) {
         oscs[i] = Pulsar.create();
@@ -41,7 +41,7 @@ int main() {
         Pulsar.destroy(oscs[v]);
     }
 
-    Pippi.destroy_buffer(buf);
+    Buffer.destroy(buf);
 
     return 0;
 }

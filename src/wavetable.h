@@ -127,7 +127,7 @@ void parseburst(int* burst, char* str, int numbursts) {
 
 /* create a wavetable (-1 to 1) */
 buffer_t* create_wavetable(char* name, size_t length) {
-    buffer_t* buf = Pippi.buffer(length, 1, -1);
+    buffer_t* buf = Buffer.create(length, 1, -1);
     if(strcmp(name, SINE) == 0) {
         wavetable_sine(buf->data, length);            
     } else if (strcmp(name, TRI) == 0) {
@@ -142,7 +142,7 @@ buffer_t* create_wavetable(char* name, size_t length) {
 
 /* create a window (0 to 1) */
 buffer_t* create_window(char* name, size_t length) {
-    buffer_t* buf = Pippi.buffer(length, 1, -1);
+    buffer_t* buf = Buffer.create(length, 1, -1);
     if(strcmp(name, SINE) == 0) {
         window_sine(buf->data, length);            
     } else if (strcmp(name, TRI) == 0) {
