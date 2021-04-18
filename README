@@ -1,2 +1,2 @@
-Running `make` will build the pulsar executable and run it,
+Running `make` will build the pulsar example (`examples/pulsar.c`) and run it,
 rendering a 1 minute long test tone as `renders/pulsar-out.wav` 
