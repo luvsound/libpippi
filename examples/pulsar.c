@@ -35,7 +35,7 @@ int main() {
         }
     }
 
-    write_soundfile("renders/pulsar-out.wav", buf);
+    SoundFile.write("renders/pulsar-out.wav", buf);
 
     for(v=0; v < VOICES; v++) {
         Pulsar.destroy(oscs[v]);

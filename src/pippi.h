@@ -1,6 +1,6 @@
 #include "pippicore.h"
-#include "soundfiles.h"
+#include "soundfile.h"
 #include "interpolation.h"
-#include "wavetables.h"
+#include "wavetable.h"
 
 #include "pulsar.h"

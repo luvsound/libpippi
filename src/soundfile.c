@@ -1,4 +1,4 @@
-#include "soundfiles.h"
+#include "soundfile.h"
 
 #define DR_WAV_IMPLEMENTATION
 #include "dr_libs/dr_wav.h"
@@ -47,3 +47,4 @@ void write_soundfile(char* path, buffer_t* buf) {
 }
 
 
+const soundfile_factory_t SoundFile = { write_soundfile };

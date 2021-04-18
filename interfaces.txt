@@ -22,7 +22,7 @@ soundbuffer.h: pippicore.h
     SoundBuffer.destroy()
 
 soundfiles.h: pippicore.h
-    write_soundfile()
+    SoundFile.write()
 
 wavetables.h: pippicore.h
     Wavetable.wt()
