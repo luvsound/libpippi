@@ -19,7 +19,7 @@ pippicore.h: assert.h, stdlib.h, stdio.h, string.h, math.h
 interpolation.h: pippicore.h
     Interpolation.linear()
 
-soundfiles.h: pippicore.h
+soundfile.h: pippicore.h
     SoundFile.write()
 
 wavetable.h: pippicore.h
