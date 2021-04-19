@@ -1,5 +1,5 @@
-#ifndef INTERPOLATION_H
-#define INTERPOLATION_H
+#ifndef LP_INTERPOLATION_H
+#define LP_INTERPOLATION_H
 
 #include "pippicore.h"
 
