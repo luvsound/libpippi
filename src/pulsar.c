@@ -199,4 +199,4 @@ void destroy_pulsar(pulsar_t* p) {
 }
 
 
-const pulsar_factory_t Pulsar = { create_pulsar, destroy_pulsar, process_pulsar };
+const pulsar_factory_t Pulsar = { create_pulsar, process_pulsar, destroy_pulsar };

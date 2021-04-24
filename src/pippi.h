@@ -4,3 +4,4 @@
 #include "wavetable.h"
 
 #include "pulsar.h"
+#include "sineosc.h"

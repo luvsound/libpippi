@@ -4,6 +4,7 @@
 #include "pippicore.h"
 
 typedef struct interpolation_factory_t {
+    lpfloat_t (*linear_pos)(buffer_t*, lpfloat_t);
     lpfloat_t (*linear)(lpfloat_t*, int, lpfloat_t);
 } interpolation_factory_t;
 

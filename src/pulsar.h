@@ -33,8 +33,8 @@ typedef struct pulsar_t {
 
 typedef struct pulsar_factory_t {
     pulsar_t* (*create)(void);
-    void (*destroy)(pulsar_t*);
     lpfloat_t (*process)(pulsar_t*);
+    void (*destroy)(pulsar_t*);
 } pulsar_factory_t;
 
 extern const pulsar_factory_t Pulsar;

@@ -5,8 +5,8 @@
 #define SR 44100
 
 int main() {
-    int length = SR * 60;
-    int i, c, v;
+    size_t length = SR * 60;
+    size_t i, c, v;
 
     lpfloat_t sample = 0;
 
