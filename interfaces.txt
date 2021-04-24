@@ -11,13 +11,17 @@ pippicore.h: assert.h, stdlib.h, stdio.h, string.h, math.h
     PHASOR
     HANN
 
-    Pippi.mix()
+    Buffer.scale()
+    Buffer.mix()
 
     Buffer.create()
     Buffer.destroy()
 
 interpolation.h: pippicore.h
+    Interpolation.linear_pos()
     Interpolation.linear()
+    Interpolation.hermite_pos()
+    Interpolation.hermite()
 
 soundfile.h: pippicore.h
     SoundFile.write()
@@ -37,6 +41,14 @@ pulsar.h: pippicore.h
     Pulsar.process()
     Pulsar.destroy()
 
+sineosc.h: pippicore.h
+    sineosc_t
+
+    SineOsc.create()
+    SineOsc.process()
+    SineOsc.destroy()
+
+
 # user-facing header (except for embedded...)
-pippi.h: pippicore.h, soundfile.h, interpolation.h, wavetable.h, pulsar.h
+pippi.h: pippicore.h, soundfile.h, interpolation.h, wavetable.h, window.h, pulsar.h, sineosc.h
 
