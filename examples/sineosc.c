@@ -18,10 +18,10 @@ int main() {
     length = 10 * SR;
 
     /* Make an LFO table to use as a frequency curve for the osc */
-    freq_lfo = Wavetable.create("sine", BS);
+    freq_lfo = Window.create("sine", BS);
 
     /* Scale it from a range of -1 to 1 to a range of minfreq to maxfreq */
-    Buffer.scale(freq_lfo, -1, 1, minfreq, maxfreq);
+    Buffer.scale(freq_lfo, 0, 1, minfreq, maxfreq);
 
     out = Buffer.create(length, CHANNELS, SR);
     osc = SineOsc.create();
