@@ -1,2 +1,7 @@
-Running `make` will build the pulsar example (`examples/pulsar.c`) and run it,
-rendering a 1 minute long test tone as `renders/pulsar-out.wav` 
+Running `make` will build two example programs:
+
+- `examples/pulsar.c`
+- `examples/sineosc.c`
+
+...and run them, depositing test renders into the `renders` directory. 
+
