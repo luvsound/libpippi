@@ -28,7 +28,7 @@ int main() {
     osc->samplerate = SR;
 
     for(i=0; i < length; i++) {
-        osc->freq = Interpolation.linear_pos(freq_lfo, (double)i/(double)length);
+        osc->freq = Interpolation.linear_pos(freq_lfo, (double)i/length);
         sample = SineOsc.process(osc) * amp;
         for(c=0; c < CHANNELS; c++) {
             out->data[i * CHANNELS + c] = sample;
@@ -39,6 +39,7 @@ int main() {
 
     SineOsc.destroy(osc);
     Buffer.destroy(out);
+    Buffer.destroy(freq_lfo);
 
     return 0;
 }

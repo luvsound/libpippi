@@ -6,42 +6,40 @@
  * This is especially useful for embedded environments with 
  * strict memory restrictions.
  *
- * To enable the memory pool allocator, you must define 
- * LP_STATIC before including pippi.h.
- */
-
-/* Enable memory pool allocator */
-#define LP_STATIC
-
-/* Use single precisions floats instead of doubles 
- * so this runs better on platforms without an FPU */
-#define LP_FLOAT
-
-/* Include the core library */
+ * To enable the memory pool allocator, you must define LP_STATIC.
+ * To ensure the flag is visible to all modules, do this as an argument 
+ * to the compiler:
+ *
+ *     gcc ... -DLP_STATIC ...
+ *
+ * Many microcontrollers are unable to perform well with double precision 
+ * floats. To tell libpippi to use single precisions floats instead of doubles 
+ * because the environment you are targeting does not provide an FPU, 
+ * define the flag LP_FLOAT along with the LP_STATIC flag:
+ *
+ *     gcc ... -DLP_STATIC -DLP_FLOAT ...
+ *
+ * In desktop environments or something more powerful like a raspberry pi 
+ * we can just use the fat "pippi.h" header which includes every module. 
+ *
+ * To save some program space in constrained environments, We can use the 
+ * "pippicore.h" header instead, and include only the modules we actually 
+ * want to use.
+ * */
 #include "pippicore.h"
+
 
 /* Since we are using the pippicore.h header, 
  * lets include the module(s) we wish to use.
- *
- * If we just used the fat "pippi.h" header, 
- * every module is already included.
- *
- * This example demonstrates how to use libpippi 
- * in an embedded environment so we don't want to 
- * include all the parts of the library we don't need.
- *
- * Normally in an embedded environment we probably 
- * wouldn't be including the soundfile.h module for 
- * example, but this test program writes its output 
- * to disk.
- *
- * To adapt this example, just remove soundfile.h 
- * and write the samples to your audio output codec 
- * instead of `out->data[i * CHANNELS + c]`.
  **/
 #include "sineosc.h"
 #include "window.h"
 #include "interpolation.h"
+
+/* Normally in an embedded environment we probably 
+ * wouldn't be including the soundfile.h module for 
+ * example, but this test program writes its output 
+ * to disk. */
 #include "soundfile.h"
 
 /* Define some local constants */
@@ -71,9 +69,9 @@ int main() {
      **/
     MemoryPool.init((unsigned char *)pool, POOLSIZE);
 
-    minfreq = 80.0;
-    maxfreq = 800.0;
-    amp = 0.2;
+    minfreq = 80.0f;
+    maxfreq = 800.0f;
+    amp = 0.2f;
 
     length = 10 * SR;
 
@@ -81,14 +79,18 @@ int main() {
     freq_lfo = Window.create("sine", BS);
 
     /* Scale it from a range of -1 to 1 to a range of minfreq to maxfreq */
-    Buffer.scale(freq_lfo, 0, 1, minfreq, maxfreq);
+    Buffer.scale(freq_lfo, 0.f, 1.f, minfreq, maxfreq);
 
     out = Buffer.create(length, CHANNELS, SR);
     osc = SineOsc.create();
     osc->samplerate = SR;
 
+    /* If we were actually running this in an embedded environment, 
+     * here we'd render just enough frames to fill the output buffer 
+     * for the audio codec. In this example we create a buffer big enough 
+     * to hold the output and then write it all to disk. */
     for(i=0; i < length; i++) {
-        osc->freq = Interpolation.linear_pos(freq_lfo, (double)i/(double)length);
+        osc->freq = Interpolation.linear_pos(freq_lfo, (float)i/length);
         sample = SineOsc.process(osc) * amp;
         for(c=0; c < CHANNELS; c++) {
             out->data[i * CHANNELS + c] = sample;
@@ -97,6 +99,7 @@ int main() {
 
     SoundFile.write("renders/memorypool-out.wav", out);
 
+    /* These are a no-op if the static allocator is enabled. */
     SineOsc.destroy(osc);
     Buffer.destroy(out);
     Buffer.destroy(freq_lfo);

@@ -1,3 +1,4 @@
+#include "pippicore.h"
 #include "sineosc.h"
 
 sineosc_t* create_sineosc(void) {
