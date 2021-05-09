@@ -12,11 +12,7 @@ sineosc_t* create_sineosc(void) {
 lpfloat_t process_sineosc(sineosc_t* osc) {
     lpfloat_t sample;
     
-#ifdef LP_FLOAT
-    sample = sinf(PI2 * osc->phase);
-#else
     sample = sin(PI2 * osc->phase);
-#endif
 
     osc->phase += osc->freq * (1.0/osc->samplerate);
 

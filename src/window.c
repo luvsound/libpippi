@@ -16,22 +16,14 @@ void window_phasor(lpfloat_t* out, int length) {
 void window_tri(lpfloat_t* out, int length) {
     int i;
     for(i=0; i < length; i++) {
-#ifdef LP_FLOAT
-        out[i] = fabsf((i/(lpfloat_t)length) * 2.0 - 1.0);      
-#else
         out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0);      
-#endif
     }
 }
 
 void window_sine(lpfloat_t* out, int length) {
     int i;
     for(i=0; i < length; i++) {
-#ifdef LP_FLOAT
         out[i] = sin((i/(lpfloat_t)length) * PI);         
-#else
-        out[i] = sinf((i/(lpfloat_t)length) * PI);         
-#endif
     }
 }
 
@@ -39,11 +31,7 @@ void window_hanning(lpfloat_t* out, int length) {
     int i;
     assert(length > 1);
     for(i=0; i < length; i++) {
-#ifdef LP_FLOAT
-        out[i] = 0.5 - 0.5 * cosf(2.0 * PI * i / (length-1.0));
-#else
         out[i] = 0.5 - 0.5 * cos(2.0 * PI * i / (length-1.0));
-#endif
     }
 }
 
