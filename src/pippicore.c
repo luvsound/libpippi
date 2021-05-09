@@ -1,16 +1,22 @@
 #include "pippicore.h"
 
 /* Buffer */
-buffer_t* create_buffer(size_t length, int channels, int samplerate) {
-    buffer_t* buf = (buffer_t*)calloc(1, sizeof(buffer_t));
+buffer_t * create_buffer(size_t length, int channels, int samplerate) {
+    buffer_t * buf;
+#ifndef LP_STATIC
+    buf = (buffer_t*)calloc(1, sizeof(buffer_t));
     buf->data = (lpfloat_t*)calloc(length * channels, sizeof(lpfloat_t));
+#else
+    buf = (buffer_t*)MemoryPool.alloc(1, sizeof(buffer_t));
+    buf->data = (lpfloat_t*)MemoryPool.alloc(length * channels, sizeof(lpfloat_t));
+#endif
     buf->channels = channels;
     buf->length = length;
     buf->samplerate = samplerate;
     return buf;
 }
 
-void scale_buffer(buffer_t* buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat_t to_min, lpfloat_t to_max) {
+void scale_buffer(buffer_t * buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat_t to_min, lpfloat_t to_max) {
     size_t i, c;
     int idx;
     lpfloat_t from_diff, to_diff;
@@ -36,46 +42,42 @@ void scale_buffer(buffer_t* buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat
     }
 }
 
-buffer_t* mix_buffers(int count, ...) {
-    va_list ap;
-    buffer_t* buf;
-    buffer_t* out;
-    size_t max_length;
-    int max_channels, max_samplerate, i, j, c;
+buffer_t * mix_buffers(buffer_t * a, buffer_t * b) {
+    int max_channels, max_samplerate, i, c;
+    buffer_t * out;
+    buffer_t * longest;
+    buffer_t * shortest;
 
-    max_length = 0;
-    max_channels = 0;
-    max_samplerate = 0;
-
-    va_start(ap, count);
-    for(i=0; i < count; i++) {
-        buf = va_arg(ap, buffer_t*);
-        if(buf->length > max_length) max_length = buf->length;
-        if(buf->channels > max_channels) max_channels = buf->channels;
-        if(buf->samplerate > max_samplerate) max_samplerate = buf->samplerate;
+    if(a->length >= b->length) {
+        longest=a; shortest=b;
+    } else {
+        longest=b; shortest=a;
     }
-    va_end(ap);
 
-    out = Buffer.create(max_length, max_channels, max_samplerate);
+    max_channels = (a->channels >= b->channels) ? a->channels : b->channels;
+    max_samplerate = (a->samplerate >= b->samplerate) ? a->samplerate : b->samplerate;
+    out = Buffer.create(longest->length, max_channels, max_samplerate);
 
-    va_start(ap, count);
-    for(i=0; i < count; i++) {
-        buf = va_arg(ap, buffer_t*);
-        for(j=0; j < max_length; j++) {
-            if(j >= buf->length) break;
-            for(c=0; c < max_channels; c++) {
-                out->data[i * max_channels + c] = buf->data[j * max_channels + c];
-            }
+    for(i=0; i < longest->length; i++) {
+        for(c=0; c < max_channels; c++) {
+            out->data[i * max_channels + c] = longest->data[i * max_channels + c];
         }
     }
-    va_end(ap);
+
+    for(i=0; i < shortest->length; i++) {
+        for(c=0; c < max_channels; c++) {
+            out->data[i * max_channels + c] = shortest->data[i * max_channels + c];
+        }
+    }
 
     return out;
 }
 
-void destroy_buffer(buffer_t* buf) {
+void destroy_buffer(buffer_t * buf) {
+#ifndef LP_STATIC
     free(buf->data);
     free(buf);
+#endif
 }
 
 /*const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, destroy_buffer };*/

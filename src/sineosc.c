@@ -2,7 +2,11 @@
 #include "sineosc.h"
 
 sineosc_t* create_sineosc(void) {
+#ifndef LP_STATIC
     sineosc_t* osc = (sineosc_t*)calloc(1, sizeof(sineosc_t));
+#else
+    sineosc_t* osc = (sineosc_t*)MemoryPool.alloc(1, sizeof(sineosc_t));
+#endif
     osc->phase = 0;
     osc->freq = 220.0;
     osc->samplerate = 48000.0;
@@ -24,7 +28,9 @@ lpfloat_t process_sineosc(sineosc_t* osc) {
 }
 
 void destroy_sineosc(sineosc_t* osc) {
+#ifndef LP_STATIC
     free(osc);
+#endif
 }
 
 
