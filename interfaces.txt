@@ -1,10 +1,15 @@
 # Just an outline to help think through refactoring...
 
-pippicore.h: assert.h, stdlib.h, stdio.h, string.h, math.h
+pippicore.h: assert.h, math.h, stdio.h, stdlib.h, string.h
     lpfloat_t
     buffer_t
 
+    buffer_factory_t
+    memorypool_factory_t
+
     PI
+    PI2
+
     SINE
     SQUARE
     TRI
@@ -13,9 +18,11 @@ pippicore.h: assert.h, stdlib.h, stdio.h, string.h, math.h
 
     Buffer.scale()
     Buffer.mix()
-
     Buffer.create()
     Buffer.destroy()
+
+    MemoryPool.init()
+    MemoryPool.alloc()
 
 interpolation.h: pippicore.h
     Interpolation.linear_pos()

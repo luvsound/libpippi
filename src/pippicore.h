@@ -4,12 +4,9 @@
 /* std includes */
 #include <assert.h>
 #include <math.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "memorypool.h"
 
 /* TYPES */
 #ifdef LP_FLOAT
@@ -43,9 +40,20 @@ typedef struct buffer_t {
 typedef struct buffer_factory_t {
     buffer_t* (*create)(size_t, int, int);
     void (*scale)(buffer_t*, lpfloat_t, lpfloat_t, lpfloat_t, lpfloat_t);
-    /*buffer_t* (*mix)(buffer_t*, buffer_t*);*/
+    buffer_t* (*mix)(buffer_t*, buffer_t*);
     void (*destroy)(buffer_t*);
 } buffer_factory_t;
+
+typedef struct memorypool_factory_t {
+    unsigned char * pool;
+    size_t poolsize;
+    size_t pos;
+
+    void * (*alloc)(size_t, size_t);
+    void (*init)(unsigned char *, size_t);
+} memorypool_factory_t;
+
 extern const buffer_factory_t Buffer;
+extern memorypool_factory_t MemoryPool;
 
 #endif

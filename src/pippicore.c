@@ -1,6 +1,20 @@
 #include "pippicore.h"
 
-/* Buffer */
+/* Forward declarations */
+buffer_t * create_buffer(size_t length, int channels, int samplerate);
+void scale_buffer(buffer_t * buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat_t to_min, lpfloat_t to_max);
+buffer_t * mix_buffers(buffer_t * a, buffer_t * b);
+void destroy_buffer(buffer_t * buf);
+void * memorypool_alloc(size_t itemcount, size_t itemsize);
+void memorypool_init(unsigned char * pool, size_t poolsize);
+
+/* Populate interfaces */
+memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_alloc, memorypool_init };
+const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, destroy_buffer };
+
+
+/* Buffer
+ * */
 buffer_t * create_buffer(size_t length, int channels, int samplerate) {
     buffer_t * buf;
 #ifndef LP_STATIC
@@ -80,5 +94,28 @@ void destroy_buffer(buffer_t * buf) {
 #endif
 }
 
-/*const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, destroy_buffer };*/
-const buffer_factory_t Buffer = { create_buffer, scale_buffer, destroy_buffer };
+/* MemoryPool
+ * */
+void * memorypool_alloc(size_t itemcount, size_t itemsize) {
+    void * p;
+    size_t length;
+
+    assert(MemoryPool.pool != 0); 
+    length = itemcount * itemsize;
+
+    if(MemoryPool.poolsize >= MemoryPool.pos + length) {
+        p = (void *)(&MemoryPool.pool[MemoryPool.pos]);
+        MemoryPool.pos += length;
+        return p;
+    }
+    exit(EXIT_FAILURE);
+}
+
+void memorypool_init(unsigned char * pool, size_t poolsize) {
+    assert(poolsize >= 1);
+    MemoryPool.pool = pool;
+    MemoryPool.poolsize = poolsize;
+    MemoryPool.pos = 0;
+}
+
+

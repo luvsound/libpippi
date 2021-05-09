@@ -4,8 +4,7 @@
 
 default: all
 
-ALLSOURCES = src/memorypool.c \
-	src/sineosc.c \
+ALLSOURCES = src/sineosc.c \
 	src/pulsar.c \
 	src/soundfile.c \
 	src/interpolation.c \
@@ -23,7 +22,7 @@ all:
 	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/sineosc.c $(ALLSOURCES) -o build/sineosc
 
 	echo "Building memory_pool.c example...";
-	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor -DLP_FLOAT -DLP_STATIC examples/memory_pool.c src/memorypool.c src/sineosc.c src/soundfile.c src/interpolation.c src/window.c src/pippicore.c -o build/memorypool
+	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor -DLP_FLOAT -DLP_STATIC examples/memory_pool.c src/sineosc.c src/soundfile.c src/interpolation.c src/window.c src/pippicore.c -o build/memorypool
 
 	echo "Rendering examples..."
 	./scripts/render_examples.sh
