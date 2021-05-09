@@ -7,9 +7,10 @@ buffer_t * mix_buffers(buffer_t * a, buffer_t * b);
 void destroy_buffer(buffer_t * buf);
 void * memorypool_alloc(size_t itemcount, size_t itemsize);
 void memorypool_init(unsigned char * pool, size_t poolsize);
+void memorypool_free(void * ptr);
 
 /* Populate interfaces */
-memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_alloc, memorypool_init };
+memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_alloc, memorypool_free };
 const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, destroy_buffer };
 
 
@@ -17,13 +18,8 @@ const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, dest
  * */
 buffer_t * create_buffer(size_t length, int channels, int samplerate) {
     buffer_t * buf;
-#ifndef LP_STATIC
-    buf = (buffer_t*)calloc(1, sizeof(buffer_t));
-    buf->data = (lpfloat_t*)calloc(length * channels, sizeof(lpfloat_t));
-#else
     buf = (buffer_t*)MemoryPool.alloc(1, sizeof(buffer_t));
     buf->data = (lpfloat_t*)MemoryPool.alloc(length * channels, sizeof(lpfloat_t));
-#endif
     buf->channels = channels;
     buf->length = length;
     buf->samplerate = samplerate;
@@ -88,15 +84,21 @@ buffer_t * mix_buffers(buffer_t * a, buffer_t * b) {
 }
 
 void destroy_buffer(buffer_t * buf) {
-#ifndef LP_STATIC
-    free(buf->data);
-    free(buf);
-#endif
+    MemoryPool.free(buf->data);
+    MemoryPool.free(buf);
 }
 
 /* MemoryPool
  * */
+void memorypool_init(unsigned char * pool, size_t poolsize) {
+    assert(poolsize >= 1);
+    MemoryPool.pool = pool;
+    MemoryPool.poolsize = poolsize;
+    MemoryPool.pos = 0;
+}
+
 void * memorypool_alloc(size_t itemcount, size_t itemsize) {
+#ifdef LP_STATIC
     void * p;
     size_t length;
 
@@ -109,13 +111,13 @@ void * memorypool_alloc(size_t itemcount, size_t itemsize) {
         return p;
     }
     exit(EXIT_FAILURE);
+#else
+    return calloc(itemcount, itemsize);
+#endif
 }
 
-void memorypool_init(unsigned char * pool, size_t poolsize) {
-    assert(poolsize >= 1);
-    MemoryPool.pool = pool;
-    MemoryPool.poolsize = poolsize;
-    MemoryPool.pos = 0;
+void memorypool_free(void * ptr) {
+#ifndef LP_STATIC
+    free(ptr);
+#endif
 }
-
-

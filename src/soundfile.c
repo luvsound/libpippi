@@ -13,7 +13,7 @@ void write_soundfile(char* path, buffer_t* buf) {
     int i, c;
 
     int channels = buf->channels;
-    tmpbuf = (float*)calloc(LP_SOUNDFILE_BUFSIZE * buf->channels, sizeof(float));
+    tmpbuf = (float*)MemoryPool.alloc(LP_SOUNDFILE_BUFSIZE * buf->channels, sizeof(float));
 
     format.container = drwav_container_riff;
     format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
@@ -43,7 +43,7 @@ void write_soundfile(char* path, buffer_t* buf) {
     }
 
     drwav_uninit(&wav);
-    free(tmpbuf);
+    MemoryPool.free(tmpbuf);
 }
 
 

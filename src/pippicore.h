@@ -49,8 +49,9 @@ typedef struct memorypool_factory_t {
     size_t poolsize;
     size_t pos;
 
-    void * (*alloc)(size_t, size_t);
     void (*init)(unsigned char *, size_t);
+    void * (*alloc)(size_t, size_t);
+    void (*free)(void *);
 } memorypool_factory_t;
 
 extern const buffer_factory_t Buffer;

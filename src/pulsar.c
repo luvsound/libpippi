@@ -62,11 +62,11 @@ pulsar_t* create_pulsar(void) {
     int numwins = 3;
     int numbursts = 4;
 
-    pulsar_t* p = (pulsar_t*)calloc(1, sizeof(pulsar_t));
+    pulsar_t* p = (pulsar_t*)MemoryPool.alloc(1, sizeof(pulsar_t));
 
-    p->wts = (buffer_t**)calloc(numwts, sizeof(buffer_t*));
-    p->wins = (buffer_t**)calloc(numwins, sizeof(buffer_t*));
-    p->burst = (int*)calloc(numbursts, sizeof(int));
+    p->wts = (buffer_t**)MemoryPool.alloc(numwts, sizeof(buffer_t*));
+    p->wins = (buffer_t**)MemoryPool.alloc(numwins, sizeof(buffer_t*));
+    p->burst = (int*)MemoryPool.alloc(numbursts, sizeof(int));
 
     parsewts(p->wts, wts, numwts, tablesize);
     parsewins(p->wins, wins, numwins, tablesize);
@@ -183,19 +183,19 @@ lpfloat_t process_pulsar(pulsar_t* p) {
 void destroy_pulsar(pulsar_t* p) {
     int i;
     for(i=0; i < p->numwts; i++) {
-        free(p->wts[i]);
+        MemoryPool.free(p->wts[i]);
     }
 
     for(i=0; i < p->numwins; i++) {
-        free(p->wins[i]);
+        MemoryPool.free(p->wins[i]);
     }
 
-    free(p->wts);
-    free(p->wins);
-    free(p->mod);
-    free(p->morph);
-    free(p->burst);
-    free(p);
+    MemoryPool.free(p->wts);
+    MemoryPool.free(p->wins);
+    MemoryPool.free(p->mod);
+    MemoryPool.free(p->morph);
+    MemoryPool.free(p->burst);
+    MemoryPool.free(p);
 }
 
 
