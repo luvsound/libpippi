@@ -3,7 +3,7 @@
 #define DR_WAV_IMPLEMENTATION
 #include "dr_libs/dr_wav.h"
 
-#define BUFSIZE 1024
+#define LP_SOUNDFILE_BUFSIZE 1024
 
 void write_soundfile(char* path, buffer_t* buf) {
     int count;
@@ -13,7 +13,7 @@ void write_soundfile(char* path, buffer_t* buf) {
     int i, c;
 
     int channels = buf->channels;
-    tmpbuf = (float*)calloc(BUFSIZE * buf->channels, sizeof(float));
+    tmpbuf = (float*)calloc(LP_SOUNDFILE_BUFSIZE * buf->channels, sizeof(float));
 
     format.container = drwav_container_riff;
     format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
@@ -27,13 +27,13 @@ void write_soundfile(char* path, buffer_t* buf) {
 
     for(i=0; i < buf->length; i++) {
         for(c=0; c < channels; c++) {
-            tmpbuf[count * channels + c] = buf->data[i * channels + c];
+            tmpbuf[count * channels + c] = (float)buf->data[i * channels + c];
         }
 
         count++;
 
-        if (count >= BUFSIZE) {
-            drwav_write_pcm_frames(&wav, BUFSIZE, tmpbuf);
+        if (count >= LP_SOUNDFILE_BUFSIZE) {
+            drwav_write_pcm_frames(&wav, LP_SOUNDFILE_BUFSIZE, tmpbuf);
             count = 0;
         }
     }

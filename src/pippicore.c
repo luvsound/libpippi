@@ -36,9 +36,41 @@ void scale_buffer(buffer_t* buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat
     }
 }
 
-/* FIXME: use stdarg.h */
-buffer_t* mix_buffers(buffer_t* a, buffer_t* b) {
-    return a;
+buffer_t* mix_buffers(int count, ...) {
+    va_list ap;
+    buffer_t* buf;
+    buffer_t* out;
+    size_t max_length;
+    int max_channels, max_samplerate, i, j, c;
+
+    max_length = 0;
+    max_channels = 0;
+    max_samplerate = 0;
+
+    va_start(ap, count);
+    for(i=0; i < count; i++) {
+        buf = va_arg(ap, buffer_t*);
+        if(buf->length > max_length) max_length = buf->length;
+        if(buf->channels > max_channels) max_channels = buf->channels;
+        if(buf->samplerate > max_samplerate) max_samplerate = buf->samplerate;
+    }
+    va_end(ap);
+
+    out = Buffer.create(max_length, max_channels, max_samplerate);
+
+    va_start(ap, count);
+    for(i=0; i < count; i++) {
+        buf = va_arg(ap, buffer_t*);
+        for(j=0; j < max_length; j++) {
+            if(j >= buf->length) break;
+            for(c=0; c < max_channels; c++) {
+                out->data[i * max_channels + c] = buf->data[j * max_channels + c];
+            }
+        }
+    }
+    va_end(ap);
+
+    return out;
 }
 
 void destroy_buffer(buffer_t* buf) {
@@ -46,4 +78,5 @@ void destroy_buffer(buffer_t* buf) {
     free(buf);
 }
 
-const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, destroy_buffer };
+/*const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, destroy_buffer };*/
+const buffer_factory_t Buffer = { create_buffer, scale_buffer, destroy_buffer };
