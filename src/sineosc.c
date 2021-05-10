@@ -1,4 +1,5 @@
 #include "pippicore.h"
+#include "interpolation.h"
 #include "sineosc.h"
 
 sineosc_t* create_sineosc(void) {
@@ -21,6 +22,27 @@ lpfloat_t process_sineosc(sineosc_t* osc) {
     }
 
     return sample;
+}
+
+buffer_t * render_sineosc(sineosc_t * osc, size_t length, buffer_t * freq, buffer_t * amp, int channels) {
+    buffer_t * out;
+    lpfloat_t sample, _amp;
+    size_t i, c;
+    float pos;
+
+    pos = 0.f;
+    out = Buffer.create(length, channels, osc->samplerate);
+    for(i=0; i < length; i++) {
+        pos = (float)i/length;
+        osc->freq = Interpolation.linear_pos(freq, pos);
+        _amp = Interpolation.linear_pos(amp, pos);
+        sample = process_sineosc(osc) * _amp;
+        for(c=0; c < channels; c++) {
+            out->data[i * channels + c] = sample;
+        }
+    }
+
+    return out;
 }
 
 void destroy_sineosc(sineosc_t* osc) {
