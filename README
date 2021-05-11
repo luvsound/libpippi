@@ -1,7 +1,13 @@
+This is in development!
+
 Running `make` will build two example programs:
 
 - `examples/pulsar.c`
 - `examples/sineosc.c`
+- `examples/memory_pool.c`
 
-...and run them, depositing test renders into the `renders` directory. 
+...and run them, depositing test renders into the 
+`renders` directory. 
 
+Running `make wavetables` will generate static 
+wavetable sources in the `generated` directory.

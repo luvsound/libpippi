@@ -1,8 +1,9 @@
-#include "pippi.h"
+#include "pippicore.h"
+#include "wavetable.h"
+
 #include <stdio.h>
 #include <ctype.h>
 
-#define VALUE_LENGTH 19
 #define DEFAULT_WAVETABLE_SIZE 4096
 
 void make_wtstring(const char * wtname, size_t wtname_length, size_t wtsize) {
