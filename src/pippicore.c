@@ -3,15 +3,23 @@
 /* Forward declarations */
 buffer_t * create_buffer(size_t length, int channels, int samplerate);
 void scale_buffer(buffer_t * buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat_t to_min, lpfloat_t to_max);
+lpfloat_t read_buffer(buffer_t * buf, lpfloat_t speed);
 buffer_t * mix_buffers(buffer_t * a, buffer_t * b);
 void destroy_buffer(buffer_t * buf);
+
 void * memorypool_alloc(size_t itemcount, size_t itemsize);
 void memorypool_init(unsigned char * pool, size_t poolsize);
 void memorypool_free(void * ptr);
 
+lpfloat_t interpolate_hermite(buffer_t* buf, lpfloat_t phase);
+lpfloat_t interpolate_hermite_pos(buffer_t* buf, lpfloat_t pos);
+lpfloat_t interpolate_linear(buffer_t* buf, lpfloat_t phase);
+lpfloat_t interpolate_linear_pos(buffer_t* buf, lpfloat_t pos);
+
 /* Populate interfaces */
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_alloc, memorypool_free };
-const buffer_factory_t Buffer = { create_buffer, scale_buffer, mix_buffers, destroy_buffer };
+const buffer_factory_t Buffer = { create_buffer, scale_buffer, read_buffer, mix_buffers, destroy_buffer };
+const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
 
 
 /* Buffer
@@ -23,6 +31,7 @@ buffer_t * create_buffer(size_t length, int channels, int samplerate) {
     buf->channels = channels;
     buf->length = length;
     buf->samplerate = samplerate;
+    buf->phase = 0.f;
     return buf;
 }
 
@@ -50,6 +59,18 @@ void scale_buffer(buffer_t * buf, lpfloat_t from_min, lpfloat_t from_max, lpfloa
             buf->data[idx] = ((buf->data[idx] - from_min) / from_diff) * to_diff + to_min;
         }
     }
+}
+
+void pan_buffer(buffer_t * buf, buffer_t * pos) {
+
+}
+
+lpfloat_t read_buffer(buffer_t * buf, lpfloat_t speed) {
+    lpfloat_t phase_inc, value;
+    phase_inc = 1.f / (buf->length * (1.f / speed));
+    value = interpolate_linear_pos(buf, buf->phase);
+    buf->phase += phase_inc;
+    return value;
 }
 
 buffer_t * mix_buffers(buffer_t * a, buffer_t * b) {
@@ -120,4 +141,79 @@ void memorypool_free(void * ptr) {
 #ifndef LP_STATIC
     free(ptr);
 #endif
+}
+
+/* Param
+ * */
+buffer_t * param_create_from_float(lpfloat_t value) {
+    buffer_t * param = create_buffer(1, 1, DEFAULT_SAMPLERATE);
+    param->data[0] = value;
+    return param;
+}
+
+buffer_t * param_create_from_int(int value) {
+    buffer_t * param = create_buffer(1, 1, DEFAULT_SAMPLERATE);
+    param->data[0] = (lpfloat_t)value;
+    return param;
+}
+
+/* Interpolation
+ * */
+lpfloat_t interpolate_hermite(buffer_t* buf, lpfloat_t phase) {
+    lpfloat_t y0, y1, y2, y3, frac;
+    lpfloat_t c0, c1, c2, c3;
+    int i0, i1, i2, i3, boundry;
+
+    if(buf->length == 1) return buf->data[0];
+    if(buf->length < 1) return 0;
+
+    boundry = buf->length - 1;
+
+    frac = phase - (int)phase;
+    i1 = (int)phase;
+    i2 = i1 + 1;
+    i3 = i2 + 1;
+    i0 = i1 - 1;
+
+    y0 = 0;
+    y1 = 0;
+    y2 = 0;
+    y3 = 0;
+
+    if(i0 >= 0) y0 = buf->data[i0];
+    if(i1 <= boundry) y1 = buf->data[i1];
+    if(i2 <= boundry) y2 = buf->data[i2];
+    if(i3 <= boundry) y3 = buf->data[i3];
+
+    /* This part was taken from version #2 by James McCartney 
+     * https://www.musicdsp.org/en/latest/Other/93-hermite-interpollation.html
+     */
+    c0 = y1;
+    c1 = 0.5 * (y2 - y0);
+    c3 = 1.5 * (y1 - y2) + 0.5 * (y3 - y0);
+    c2 = y0 - y1 + c1 - c3;
+    return ((c3 * frac + c2) * frac + c1) * frac + c0;
+}
+
+lpfloat_t interpolate_hermite_pos(buffer_t* buf, lpfloat_t pos) {
+    return interpolate_hermite(buf, pos * buf->length);
+}
+
+lpfloat_t interpolate_linear(buffer_t* buf, lpfloat_t phase) {
+    lpfloat_t frac, a, b;
+    size_t i;
+    
+    frac = phase - (int)phase;
+    i = (int)phase;
+
+    if (i >= buf->length-1 || i < 0) return 0;
+
+    a = buf->data[i];
+    b = buf->data[i+1];
+
+    return (1.0 - frac) * a + (frac * b);
+}
+
+lpfloat_t interpolate_linear_pos(buffer_t* buf, lpfloat_t pos) {
+    return interpolate_linear(buf, pos * buf->length);
 }

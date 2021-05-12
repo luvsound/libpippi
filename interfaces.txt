@@ -24,7 +24,6 @@ pippicore.h: assert.h, math.h, stdio.h, stdlib.h, string.h
     MemoryPool.init()
     MemoryPool.alloc()
 
-interpolation.h: pippicore.h
     Interpolation.linear_pos()
     Interpolation.linear()
     Interpolation.hermite_pos()
@@ -57,5 +56,5 @@ sineosc.h: pippicore.h
 
 
 # user-facing header (except for embedded...)
-pippi.h: pippicore.h, soundfile.h, interpolation.h, wavetable.h, window.h, pulsar.h, sineosc.h
+pippi.h: pippicore.h, soundfile.h, wavetable.h, window.h, pulsar.h, sineosc.h
 

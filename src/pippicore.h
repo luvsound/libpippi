@@ -30,18 +30,25 @@ typedef double lpfloat_t;
 #define PHASOR "phasor"
 #define HANN "hann"
 
+#define DEFAULT_CHANNELS 2
+#define DEFAULT_SAMPLERATE 48000
+
+/* Core datatypes */
 typedef struct buffer_t {
     lpfloat_t* data;
     size_t length;
     int samplerate;
     int channels;
+    lpfloat_t phase;
 } buffer_t;
 
+/* Factories */
 typedef struct buffer_factory_t {
-    buffer_t* (*create)(size_t, int, int);
-    void (*scale)(buffer_t*, lpfloat_t, lpfloat_t, lpfloat_t, lpfloat_t);
-    buffer_t* (*mix)(buffer_t*, buffer_t*);
-    void (*destroy)(buffer_t*);
+    buffer_t * (*create)(size_t, int, int);
+    void (*scale)(buffer_t *, lpfloat_t, lpfloat_t, lpfloat_t, lpfloat_t);
+    lpfloat_t (*read)(buffer_t *, lpfloat_t);
+    buffer_t * (*mix)(buffer_t *, buffer_t *);
+    void (*destroy)(buffer_t *);
 } buffer_factory_t;
 
 typedef struct memorypool_factory_t {
@@ -54,7 +61,15 @@ typedef struct memorypool_factory_t {
     void (*free)(void *);
 } memorypool_factory_t;
 
+typedef struct interpolation_factory_t {
+    lpfloat_t (*linear_pos)(buffer_t*, lpfloat_t);
+    lpfloat_t (*linear)(buffer_t*, lpfloat_t);
+    lpfloat_t (*hermite_pos)(buffer_t*, lpfloat_t);
+    lpfloat_t (*hermite)(buffer_t*, lpfloat_t);
+} interpolation_factory_t;
+
 extern const buffer_factory_t Buffer;
 extern memorypool_factory_t MemoryPool;
+extern const interpolation_factory_t Interpolation;
 
 #endif

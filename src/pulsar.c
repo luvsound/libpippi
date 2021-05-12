@@ -1,5 +1,4 @@
 #include "pulsar.h"
-#include "interpolation.h"
 #include "wavetable.h"
 #include "window.h"
 

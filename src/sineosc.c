@@ -1,5 +1,4 @@
 #include "pippicore.h"
-#include "interpolation.h"
 #include "sineosc.h"
 
 sineosc_t* create_sineosc(void) {
@@ -50,4 +49,4 @@ void destroy_sineosc(sineosc_t* osc) {
 }
 
 
-const sineosc_factory_t SineOsc = { create_sineosc, process_sineosc, destroy_sineosc };
+const sineosc_factory_t SineOsc = { create_sineosc, process_sineosc, render_sineosc, destroy_sineosc };
