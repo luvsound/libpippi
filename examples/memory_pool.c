@@ -32,7 +32,7 @@
 /* Since we are using the pippicore.h header, 
  * lets include the module(s) we wish to use.
  **/
-#include "sineosc.h"
+#include "oscs.sine.h"
 #include "window.h"
 #include "interpolation.h"
 

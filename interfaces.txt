@@ -1,11 +1,9 @@
 # Just an outline to help think through refactoring...
 
+
 pippicore.h: assert.h, math.h, stdio.h, stdlib.h, string.h
     lpfloat_t
     buffer_t
-
-    buffer_factory_t
-    memorypool_factory_t
 
     PI
     PI2
@@ -40,12 +38,12 @@ window.h: pippicore.h
     Window.create()
     Window.destroy()
 
-pulsar.h: pippicore.h
-    pulsar_t
+pulsarosc.h: pippicore.h
+    pulsarosc_t
 
-    Pulsar.create()
-    Pulsar.process()
-    Pulsar.destroy()
+    PulsarOsc.create()
+    PulsarOsc.process()
+    PulsarOsc.destroy()
 
 sineosc.h: pippicore.h
     sineosc_t
@@ -56,5 +54,5 @@ sineosc.h: pippicore.h
 
 
 # user-facing header (except for embedded...)
-pippi.h: pippicore.h, soundfile.h, wavetable.h, window.h, pulsar.h, sineosc.h
+pippi.h: pippicore.h, soundfile.h, wavetable.h, window.h, oscs.pulsar.h, oscs.sine.h, ringbuffer.h
 

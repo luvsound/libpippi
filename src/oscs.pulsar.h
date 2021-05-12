@@ -3,7 +3,7 @@
 
 #include "pippicore.h"
 
-typedef struct pulsar_t {
+typedef struct pulsarosc_t {
     buffer_t** wts;   /* Wavetable stack */
     buffer_t** wins;  /* Window stack */
     int numwts;    /* Number of wts in stack */
@@ -29,15 +29,15 @@ typedef struct pulsar_t {
     lpfloat_t modfreq;
     lpfloat_t morphfreq;
     lpfloat_t inc;
-} pulsar_t;
+} pulsarosc_t;
 
-typedef struct pulsar_factory_t {
-    pulsar_t* (*create)(void);
-    lpfloat_t (*process)(pulsar_t*);
-    void (*destroy)(pulsar_t*);
-} pulsar_factory_t;
+typedef struct pulsarosc_factory_t {
+    pulsarosc_t* (*create)(void);
+    lpfloat_t (*process)(pulsarosc_t*);
+    void (*destroy)(pulsarosc_t*);
+} pulsarosc_factory_t;
 
-extern const pulsar_factory_t Pulsar;
+extern const pulsarosc_factory_t PulsarOsc;
 
 
 #endif

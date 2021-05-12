@@ -1,4 +1,4 @@
-#include "pulsar.h"
+#include "oscs.pulsar.h"
 #include "wavetable.h"
 #include "window.h"
 
@@ -44,7 +44,7 @@ void parseburst(int* burst, char* str, int numbursts) {
 
 
 
-pulsar_t* create_pulsar(void) {
+pulsarosc_t* create_pulsarosc(void) {
     /* Default args */
     lpfloat_t samplerate = 44100.0;
     int tablesize = 4096;
@@ -61,7 +61,7 @@ pulsar_t* create_pulsar(void) {
     int numwins = 3;
     int numbursts = 4;
 
-    pulsar_t* p = (pulsar_t*)MemoryPool.alloc(1, sizeof(pulsar_t));
+    pulsarosc_t* p = (pulsarosc_t*)MemoryPool.alloc(1, sizeof(pulsarosc_t));
 
     p->wts = (buffer_t**)MemoryPool.alloc(numwts, sizeof(buffer_t*));
     p->wins = (buffer_t**)MemoryPool.alloc(numwins, sizeof(buffer_t*));
@@ -96,7 +96,7 @@ pulsar_t* create_pulsar(void) {
     return p;
 }
 
-lpfloat_t process_pulsar(pulsar_t* p) {
+lpfloat_t process_pulsarosc(pulsarosc_t* p) {
     /* Get the pulsewidth and inverse pulsewidth if the pulsewidth 
      * is zero, skip everything except phase incrementing and return 
      * a zero down the line.
@@ -179,7 +179,7 @@ lpfloat_t process_pulsar(pulsar_t* p) {
     return sample * mod;
 }
 
-void destroy_pulsar(pulsar_t* p) {
+void destroy_pulsarosc(pulsarosc_t* p) {
     int i;
     for(i=0; i < p->numwts; i++) {
         MemoryPool.free(p->wts[i]);
@@ -198,4 +198,4 @@ void destroy_pulsar(pulsar_t* p) {
 }
 
 
-const pulsar_factory_t Pulsar = { create_pulsar, process_pulsar, destroy_pulsar };
+const pulsarosc_factory_t PulsarOsc = { create_pulsarosc, process_pulsarosc, destroy_pulsarosc };

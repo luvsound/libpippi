@@ -1,5 +1,5 @@
 #include "pippicore.h"
-#include "sineosc.h"
+#include "oscs.sine.h"
 
 sineosc_t* create_sineosc(void) {
     sineosc_t* osc = (sineosc_t*)MemoryPool.alloc(1, sizeof(sineosc_t));

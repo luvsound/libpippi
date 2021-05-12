@@ -1,8 +1,11 @@
 #include "pippicore.h"
+
+#include "oscs.pulsar.h"
+#include "oscs.sine.h"
+
+#include "ringbuffer.h"
 #include "soundfile.h"
-#include "interpolation.h"
 #include "wavetable.h"
 #include "window.h"
 
-#include "pulsar.h"
-#include "sineosc.h"
+

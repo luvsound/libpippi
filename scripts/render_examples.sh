@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Rendering pulsar example..."
-time ./build/pulsar
+time ./build/pulsarosc
 
 echo "Rendering sineosc example..."
 time ./build/sineosc
