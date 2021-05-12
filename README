@@ -1,6 +1,6 @@
 This is in development!
 
-Running `make` will build two example programs:
+Running `make` will build these example programs:
 
 - `examples/pulsar.c`
 - `examples/sineosc.c`
