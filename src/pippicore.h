@@ -46,10 +46,17 @@ typedef struct buffer_t {
 typedef struct buffer_factory_t {
     buffer_t * (*create)(size_t, int, int);
     void (*scale)(buffer_t *, lpfloat_t, lpfloat_t, lpfloat_t, lpfloat_t);
-    lpfloat_t (*read)(buffer_t *, lpfloat_t);
+    lpfloat_t (*play)(buffer_t *, lpfloat_t);
     buffer_t * (*mix)(buffer_t *, buffer_t *);
+    void (*multiply)(buffer_t *, buffer_t *);
+    void (*dub)(buffer_t *, buffer_t *);
     void (*destroy)(buffer_t *);
 } buffer_factory_t;
+
+typedef struct param_factory_t {
+    buffer_t * (*from_float)(lpfloat_t);
+    buffer_t * (*from_int)(int);
+} param_factory_t;
 
 typedef struct memorypool_factory_t {
     unsigned char * pool;
@@ -71,5 +78,6 @@ typedef struct interpolation_factory_t {
 extern const buffer_factory_t Buffer;
 extern memorypool_factory_t MemoryPool;
 extern const interpolation_factory_t Interpolation;
+extern const param_factory_t Param;
 
 #endif

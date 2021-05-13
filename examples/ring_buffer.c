@@ -10,13 +10,13 @@
 
 int main() {
     size_t length;
-    buffer_t* amp;
-    buffer_t* freq;
-    buffer_t* out;
-    sineosc_t* osc;
+    buffer_t * amp;
+    buffer_t * freq;
+    buffer_t * out;
+    sineosc_t * osc;
 
-    freq = Param.createf(200.0f);
-    amp = Param.createf(0.2f);
+    freq = Param.from_float(200.0f);
+    amp = Param.from_float(0.6f);
 
     length = 10 * SR;
 
@@ -25,7 +25,7 @@ int main() {
 
     out = SineOsc.render(osc, length, freq, amp, CHANNELS);
 
-    SoundFile.write("renders/memorypool-out.wav", out);
+    SoundFile.write("renders/ring_buffer-out.wav", out);
 
     SineOsc.destroy(osc);
     Buffer.destroy(out);

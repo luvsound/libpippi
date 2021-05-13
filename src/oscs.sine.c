@@ -1,6 +1,13 @@
 #include "pippicore.h"
 #include "oscs.sine.h"
 
+sineosc_t* create_sineosc(void);
+lpfloat_t process_sineosc(sineosc_t* osc);
+buffer_t * render_sineosc(sineosc_t * osc, size_t length, buffer_t * freq, buffer_t * amp, int channels);
+void destroy_sineosc(sineosc_t* osc);
+
+const sineosc_factory_t SineOsc = { create_sineosc, process_sineosc, render_sineosc, destroy_sineosc };
+
 sineosc_t* create_sineosc(void) {
     sineosc_t* osc = (sineosc_t*)MemoryPool.alloc(1, sizeof(sineosc_t));
     osc->phase = 0;
@@ -49,4 +56,3 @@ void destroy_sineosc(sineosc_t* osc) {
 }
 
 
-const sineosc_factory_t SineOsc = { create_sineosc, process_sineosc, render_sineosc, destroy_sineosc };

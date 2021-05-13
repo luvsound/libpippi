@@ -3,7 +3,10 @@
 /* Forward declarations */
 buffer_t * create_buffer(size_t length, int channels, int samplerate);
 void scale_buffer(buffer_t * buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat_t to_min, lpfloat_t to_max);
-lpfloat_t read_buffer(buffer_t * buf, lpfloat_t speed);
+void multiply_buffer(buffer_t * a, buffer_t * b);
+void dub_buffer(buffer_t * a, buffer_t * b);
+lpfloat_t play_buffer(buffer_t * buf, lpfloat_t speed);
+buffer_t * copy_buffer(buffer_t * buf);
 buffer_t * mix_buffers(buffer_t * a, buffer_t * b);
 void destroy_buffer(buffer_t * buf);
 
@@ -16,10 +19,14 @@ lpfloat_t interpolate_hermite_pos(buffer_t* buf, lpfloat_t pos);
 lpfloat_t interpolate_linear(buffer_t* buf, lpfloat_t phase);
 lpfloat_t interpolate_linear_pos(buffer_t* buf, lpfloat_t pos);
 
+buffer_t * param_create_from_float(lpfloat_t value);
+buffer_t * param_create_from_int(int value);
+
 /* Populate interfaces */
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_alloc, memorypool_free };
-const buffer_factory_t Buffer = { create_buffer, scale_buffer, read_buffer, mix_buffers, destroy_buffer };
+const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, destroy_buffer };
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
+const param_factory_t Param = { param_create_from_float, param_create_from_int };
 
 
 /* Buffer
@@ -65,12 +72,36 @@ void pan_buffer(buffer_t * buf, buffer_t * pos) {
 
 }
 
-lpfloat_t read_buffer(buffer_t * buf, lpfloat_t speed) {
+lpfloat_t play_buffer(buffer_t * buf, lpfloat_t speed) {
     lpfloat_t phase_inc, value;
     phase_inc = 1.f / (buf->length * (1.f / speed));
     value = interpolate_linear_pos(buf, buf->phase);
     buf->phase += phase_inc;
     return value;
+}
+
+void multiply_buffer(buffer_t * a, buffer_t * b) {
+    size_t length;
+    int i, c, j;
+    length = (a->length <= b->length) ? a->length : b->length;
+    for(i=0; i < length; i++) {
+        for(c=0; c < a->channels; c++) {
+            j = b->channels % c;
+            a->data[i * a->channels + c] *= b->data[i * b->channels + j];
+        }
+    }
+}
+
+void dub_buffer(buffer_t * a, buffer_t * b) {
+    size_t length;
+    int i, c, j;
+    length = (a->length <= b->length) ? a->length : b->length;
+    for(i=0; i < length; i++) {
+        for(c=0; c < a->channels; c++) {
+            j = b->channels % c;
+            a->data[i * a->channels + c] += b->data[i * b->channels + j];
+        }
+    }
 }
 
 buffer_t * mix_buffers(buffer_t * a, buffer_t * b) {
@@ -202,6 +233,8 @@ lpfloat_t interpolate_hermite_pos(buffer_t* buf, lpfloat_t pos) {
 lpfloat_t interpolate_linear(buffer_t* buf, lpfloat_t phase) {
     lpfloat_t frac, a, b;
     size_t i;
+
+    if(buf->length == 1) return buf->data[0];
     
     frac = phase - (int)phase;
     i = (int)phase;
