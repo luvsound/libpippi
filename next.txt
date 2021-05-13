@@ -1,6 +1,8 @@
 Core:
     Move Wavetable and Window modules into core module.
     Add compile-time option for static tables...
+    Maybe split core implementation up into core.*.c files?
+        Not to be modular, just to organize the sources a bit...
 
 MIR:
     Port Coyote onset routines from SuperCollider
