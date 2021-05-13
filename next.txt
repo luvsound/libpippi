@@ -1,0 +1,4 @@
+Add: 
+    Buffer.env(buffer_t *)
+    Buffer.resample(size_t length)
+
