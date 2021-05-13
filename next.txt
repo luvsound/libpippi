@@ -1,3 +1,10 @@
+Core:
+    Move Wavetable and Window modules into core module.
+    Add compile-time option for static tables...
+
+MIR:
+    Port Coyote onset routines from SuperCollider
+
 Ring buffer example:
     write bloops into ringbuffer...
     save ringbuffer to disk...

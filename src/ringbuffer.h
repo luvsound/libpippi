@@ -9,10 +9,10 @@ typedef struct ringbuffer_t {
 } ringbuffer_t;
 
 typedef struct ringbuffer_factory_t {
-    buffer_t * (*create)(size_t, int, int);
+    ringbuffer_t * (*create)(size_t, int, int);
     buffer_t * (*read)(ringbuffer_t *, size_t);
-    buffer_t * (*write)(ringbuffer_t *, buffer_t *);
-    buffer_t * (*destroy)(ringbuffer_t *);
+    void (*write)(ringbuffer_t *, buffer_t *);
+    void (*destroy)(ringbuffer_t *);
 } ringbuffer_factory_t;
 
 extern const ringbuffer_factory_t RingBuffer;

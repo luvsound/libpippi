@@ -4,6 +4,7 @@ default: all
 
 ALLSOURCES = src/oscs.sine.c \
 	src/oscs.pulsar.c \
+	src/ringbuffer.c \
 	src/soundfile.c \
 	src/window.c \
 	src/wavetable.c \

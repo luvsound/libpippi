@@ -10,13 +10,14 @@ ringbuffer_t * ringbuffer_create(size_t length, int channels, int samplerate) {
 
 buffer_t * ringbuffer_read(ringbuffer_t * ringbuf, size_t length) {
     int i, c;
-    size_t pos = ringbuf->pos;
+    size_t pos = ringbuf->pos - length;
     buffer_t * out;
 
+    pos = pos % ringbuf->buf->length;
     out = Buffer.create(length, ringbuf->buf->channels, ringbuf->buf->samplerate);
     for(i=0; i < length; i++) {
         for(c=0; c < ringbuf->buf->channels; c++) {
-            out[i * out->channels + c] = ringbuf->buf->data[pos * ringbuf->buf->channels + c];
+            out->data[i * out->channels + c] = ringbuf->buf->data[pos * ringbuf->buf->channels + c];
         }
 
         pos += 1;

@@ -16,9 +16,13 @@ int main() {
     buffer_t * out;
     sineosc_t * osc;
 
+    ringbuffer_t * ringbuf;
+    buffer_t * halfsec;
+
     freq = Param.from_float(200.0f);
     amp = Param.from_float(0.3f);
     env = Window.create("sine", 4096);
+    ringbuf = RingBuffer.create(SR, CHANNELS, SR); /* 1 second ring buffer */
 
     length = 4410;
 
@@ -28,7 +32,13 @@ int main() {
     out = SineOsc.render(osc, length, freq, amp, CHANNELS);
     Buffer.env(out, env);
 
-    SoundFile.write("renders/ring_buffer-out.wav", out);
+    RingBuffer.write(ringbuf, out);
+
+    SoundFile.write("renders/ring_buffer-write-out.wav", ringbuf->buf);
+
+    halfsec = RingBuffer.read(ringbuf, SR/2);
+
+    SoundFile.write("renders/ring_buffer-read-out.wav", halfsec);
 
     SineOsc.destroy(osc);
     Buffer.destroy(out);
