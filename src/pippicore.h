@@ -50,6 +50,7 @@ typedef struct buffer_factory_t {
     buffer_t * (*mix)(buffer_t *, buffer_t *);
     void (*multiply)(buffer_t *, buffer_t *);
     void (*dub)(buffer_t *, buffer_t *);
+    void (*env)(buffer_t *, buffer_t *);
     void (*destroy)(buffer_t *);
 } buffer_factory_t;
 

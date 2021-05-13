@@ -1,4 +1,3 @@
-Add: 
-    Buffer.env(buffer_t *)
-    Buffer.resample(size_t length)
-
+Ring buffer example:
+    write bloops into ringbuffer...
+    save ringbuffer to disk...

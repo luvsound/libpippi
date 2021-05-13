@@ -5,6 +5,7 @@ buffer_t * create_buffer(size_t length, int channels, int samplerate);
 void scale_buffer(buffer_t * buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat_t to_min, lpfloat_t to_max);
 void multiply_buffer(buffer_t * a, buffer_t * b);
 void dub_buffer(buffer_t * a, buffer_t * b);
+void env_buffer(buffer_t * buf, buffer_t * env);
 lpfloat_t play_buffer(buffer_t * buf, lpfloat_t speed);
 buffer_t * copy_buffer(buffer_t * buf);
 buffer_t * mix_buffers(buffer_t * a, buffer_t * b);
@@ -24,7 +25,7 @@ buffer_t * param_create_from_int(int value);
 
 /* Populate interfaces */
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_alloc, memorypool_free };
-const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, destroy_buffer };
+const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, env_buffer, destroy_buffer };
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
 const param_factory_t Param = { param_create_from_float, param_create_from_int };
 
@@ -80,6 +81,23 @@ lpfloat_t play_buffer(buffer_t * buf, lpfloat_t speed) {
     return value;
 }
 
+buffer_t * resample_buffer(buffer_t * buf, size_t length) {
+    buffer_t * out;
+    lpfloat_t pos;
+    int i, c;
+
+    assert(length > 1);
+    out = create_buffer(length, buf->channels, buf->samplerate);
+    for(i=0; i < length; i++) {
+        pos = (lpfloat_t)i / length;
+        for(c=0; c < buf->channels; c++) {
+            out->data[i * buf->channels + c] = play_buffer(buf, pos);
+        }
+    }
+
+    return out;
+}
+
 void multiply_buffer(buffer_t * a, buffer_t * b) {
     size_t length;
     int i, c, j;
@@ -88,6 +106,21 @@ void multiply_buffer(buffer_t * a, buffer_t * b) {
         for(c=0; c < a->channels; c++) {
             j = b->channels % c;
             a->data[i * a->channels + c] *= b->data[i * b->channels + j];
+        }
+    }
+}
+
+void env_buffer(buffer_t * buf, buffer_t * env) {
+    lpfloat_t pos, value;
+    int i, c;
+
+    assert(env->length > 0);
+
+    for(i=0; i < buf->length; i++) {
+        pos = (lpfloat_t)i / buf->length;
+        for(c=0; c < buf->channels; c++) {
+            value = interpolate_linear_pos(env, pos);
+            buf->data[i * buf->channels + c] *= value;
         }
     }
 }
