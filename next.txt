@@ -5,6 +5,3 @@ Core:
 MIR:
     Port Coyote onset routines from SuperCollider
 
-Ring buffer example:
-    write bloops into ringbuffer...
-    save ringbuffer to disk...
