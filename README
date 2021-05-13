@@ -5,6 +5,7 @@ Running `make` will build these example programs:
 - `examples/pulsar.c`
 - `examples/sineosc.c`
 - `examples/memory_pool.c`
+- `examples/ring_buffer.c`
 
 ...and run them, depositing test renders into the 
 `renders` directory. 
