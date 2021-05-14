@@ -25,6 +25,8 @@ buffer_t * param_create_from_int(int value);
 
 buffer_t* create_wavetable(char* name, size_t length);
 void destroy_wavetable(buffer_t* buf);
+buffer_t* create_window(char* name, size_t length);
+void destroy_window(buffer_t* buf);
 
 /* Populate interfaces */
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_alloc, memorypool_free };
@@ -32,6 +34,7 @@ const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
 const param_factory_t Param = { param_create_from_float, param_create_from_int };
 const wavetable_factory_t Wavetable = { create_wavetable, destroy_wavetable };
+const window_factory_t Window = { create_window, destroy_window };
 
 
 /* Buffer
@@ -338,4 +341,60 @@ void destroy_wavetable(buffer_t* buf) {
     Buffer.destroy(buf);
 }
 
+/* Window generators
+ *
+ * All these functions return a table of values 
+ * of the given length with values between 0 and 1
+ */
+void window_phasor(lpfloat_t* out, int length) {
+    int i;
+    for(i=0; i < length; i++) {
+        out[i] = i/(lpfloat_t)length;      
+    }
+}
+
+void window_tri(lpfloat_t* out, int length) {
+    int i;
+    for(i=0; i < length; i++) {
+        out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0);      
+    }
+}
+
+void window_sine(lpfloat_t* out, int length) {
+    int i;
+    for(i=0; i < length; i++) {
+        out[i] = sin((i/(lpfloat_t)length) * PI);         
+    }
+}
+
+void window_hanning(lpfloat_t* out, int length) {
+    int i;
+    assert(length > 1);
+    for(i=0; i < length; i++) {
+        out[i] = 0.5 - 0.5 * cos(2.0 * PI * i / (length-1.0));
+    }
+}
+
+
+/* create a window (0 to 1) */
+buffer_t* create_window(char* name, size_t length) {
+    buffer_t* buf = Buffer.create(length, 1, -1);
+    if(strcmp(name, SINE) == 0) {
+        window_sine(buf->data, length);            
+    } else if (strcmp(name, TRI) == 0) {
+        window_tri(buf->data, length);            
+    } else if (strcmp(name, PHASOR) == 0) {
+        window_phasor(buf->data, length);            
+    } else if (strcmp(name, HANN) == 0) {
+        window_hanning(buf->data, length);            
+    } else {
+        window_sine(buf->data, length);            
+    }
+    return buf;
+}
+
+
+void destroy_window(buffer_t* buf) {
+    Buffer.destroy(buf);
+}
 

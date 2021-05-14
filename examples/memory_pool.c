@@ -33,8 +33,6 @@
  * lets include the module(s) we wish to use.
  **/
 #include "oscs.sine.h"
-#include "window.h"
-#include "interpolation.h"
 
 /* Normally in an embedded environment we probably 
  * wouldn't be including the soundfile.h module for 

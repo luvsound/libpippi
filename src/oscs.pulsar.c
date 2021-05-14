@@ -1,5 +1,4 @@
 #include "oscs.pulsar.h"
-#include "window.h"
 
 /* TODO these belong somewhere else... */
 

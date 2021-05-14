@@ -6,7 +6,6 @@ ALLSOURCES = src/oscs.sine.c \
 	src/oscs.pulsar.c \
 	src/ringbuffer.c \
 	src/soundfile.c \
-	src/window.c \
 	src/pippicore.c
 
 wavetables:
@@ -25,7 +24,7 @@ all:
 	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/ring_buffer.c $(ALLSOURCES) -o build/ring_buffer
 
 	echo "Building memory_pool.c example...";
-	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor -DLP_FLOAT -DLP_STATIC examples/memory_pool.c src/oscs.sine.c src/soundfile.c src/window.c src/pippicore.c -o build/memorypool
+	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor -DLP_FLOAT -DLP_STATIC examples/memory_pool.c src/oscs.sine.c src/soundfile.c src/pippicore.c -o build/memorypool
 
 	echo "Rendering examples..."
 	./scripts/render_examples.sh
