@@ -5,4 +5,5 @@ Core:
 
 MIR:
     Port Coyote onset routines from SuperCollider
+    Is there a standalone fast yin implementation I can wrap? (Or implement from a paper?)
 
