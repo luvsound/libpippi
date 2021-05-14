@@ -7,7 +7,6 @@ ALLSOURCES = src/oscs.sine.c \
 	src/ringbuffer.c \
 	src/soundfile.c \
 	src/window.c \
-	src/wavetable.c \
 	src/pippicore.c
 
 wavetables:

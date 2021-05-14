@@ -27,12 +27,12 @@ pippicore.h: assert.h, math.h, stdio.h, stdlib.h, string.h
     Interpolation.hermite_pos()
     Interpolation.hermite()
 
-soundfile.h: pippicore.h
-    SoundFile.write()
-
-wavetable.h: pippicore.h
     Wavetable.create()
     Wavetable.destroy()
+
+
+soundfile.h: pippicore.h
+    SoundFile.write()
 
 window.h: pippicore.h
     Window.create()
@@ -54,5 +54,5 @@ sineosc.h: pippicore.h
 
 
 # user-facing header (except for embedded...)
-pippi.h: pippicore.h, soundfile.h, wavetable.h, window.h, oscs.pulsar.h, oscs.sine.h, ringbuffer.h
+pippi.h: pippicore.h, soundfile.h, window.h, oscs.pulsar.h, oscs.sine.h, ringbuffer.h
 

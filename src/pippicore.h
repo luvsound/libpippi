@@ -76,9 +76,16 @@ typedef struct interpolation_factory_t {
     lpfloat_t (*hermite)(buffer_t*, lpfloat_t);
 } interpolation_factory_t;
 
+typedef struct wavetable_factory_t {
+    buffer_t* (*create)(char* name, size_t length);
+    void (*destroy)(buffer_t*);
+} wavetable_factory_t;
+
+
 extern const buffer_factory_t Buffer;
 extern memorypool_factory_t MemoryPool;
 extern const interpolation_factory_t Interpolation;
 extern const param_factory_t Param;
+extern const wavetable_factory_t Wavetable;
 
 #endif

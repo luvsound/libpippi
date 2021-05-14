@@ -1,5 +1,4 @@
 #include "pippicore.h"
-#include "wavetable.h"
 
 #include <stdio.h>
 #include <ctype.h>

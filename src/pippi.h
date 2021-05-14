@@ -5,7 +5,6 @@
 
 #include "ringbuffer.h"
 #include "soundfile.h"
-#include "wavetable.h"
 #include "window.h"
 
 

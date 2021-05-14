@@ -23,11 +23,15 @@ lpfloat_t interpolate_linear_pos(buffer_t* buf, lpfloat_t pos);
 buffer_t * param_create_from_float(lpfloat_t value);
 buffer_t * param_create_from_int(int value);
 
+buffer_t* create_wavetable(char* name, size_t length);
+void destroy_wavetable(buffer_t* buf);
+
 /* Populate interfaces */
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_alloc, memorypool_free };
 const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, env_buffer, destroy_buffer };
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
 const param_factory_t Param = { param_create_from_float, param_create_from_int };
+const wavetable_factory_t Wavetable = { create_wavetable, destroy_wavetable };
 
 
 /* Buffer
@@ -283,3 +287,55 @@ lpfloat_t interpolate_linear(buffer_t* buf, lpfloat_t phase) {
 lpfloat_t interpolate_linear_pos(buffer_t* buf, lpfloat_t pos) {
     return interpolate_linear(buf, pos * buf->length);
 }
+
+/* Wavetable generators
+ * 
+ * All these functions return a table of values 
+ * of the given length with values between -1 and 1
+ */
+void wavetable_sine(lpfloat_t* out, int length) {
+    int i;
+    for(i=0; i < length; i++) {
+        out[i] = sin((i/(lpfloat_t)length) * PI * 2.0);         
+    }
+}
+
+void wavetable_square(lpfloat_t* out, int length) {
+    int i;
+    for(i=0; i < length; i++) {
+        if(i < (length/2.0)) {
+            out[i] = 0.9999;
+        } else {
+            out[i] = -0.9999;
+        }
+    }
+}
+
+void wavetable_tri(lpfloat_t* out, int length) {
+    int i;
+    for(i=0; i < length; i++) {
+        out[i] = fabs((i/(lpfloat_t)length) * 2.0 - 1.0) * 2.0 - 1.0;      
+    }
+}
+
+
+/* create a wavetable (-1 to 1) */
+buffer_t* create_wavetable(char* name, size_t length) {
+    buffer_t* buf = Buffer.create(length, 1, -1);
+    if(strcmp(name, SINE) == 0) {
+        wavetable_sine(buf->data, length);            
+    } else if (strcmp(name, TRI) == 0) {
+        wavetable_tri(buf->data, length);            
+    } else if (strcmp(name, SQUARE) == 0) {
+        wavetable_square(buf->data, length);            
+    } else {
+        wavetable_sine(buf->data, length);            
+    }
+    return buf;
+}
+
+void destroy_wavetable(buffer_t* buf) {
+    Buffer.destroy(buf);
+}
+
+
