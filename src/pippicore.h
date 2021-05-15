@@ -87,11 +87,28 @@ typedef struct window_factory_t {
 } window_factory_t;
 
 
+/* Interfaces */
 extern const buffer_factory_t Buffer;
 extern memorypool_factory_t MemoryPool;
 extern const interpolation_factory_t Interpolation;
 extern const param_factory_t Param;
 extern const wavetable_factory_t Wavetable;
 extern const window_factory_t Window;
+
+
+/* Utilities */
+
+/* The zapgremlins() routine was written by James McCartney as part of SuperCollider:
+ * https://github.com/supercollider/supercollider/blob/f0d4f47a33b57b1f855fe9ca2d4cb427038974f0/headers/plugin_interface/SC_InlineUnaryOp.h#L35
+ *
+ * SuperCollider real time audio synthesis system
+ * Copyright (c) 2002 James McCartney. All rights reserved.
+ * http://www.audiosynth.com
+ *
+ * He says:
+ *      This is a function for preventing pathological math operations in ugens.
+ *      It can be used at the end of a block to fix any recirculating filter values.
+ */
+lpfloat_t zapgremlins(lpfloat_t x);
 
 #endif

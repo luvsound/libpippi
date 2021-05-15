@@ -398,3 +398,23 @@ void destroy_window(buffer_t* buf) {
     Buffer.destroy(buf);
 }
 
+/* Utilities */
+
+/* The zapgremlins() routine was written by James McCartney as part of SuperCollider:
+ * https://github.com/supercollider/supercollider/blob/f0d4f47a33b57b1f855fe9ca2d4cb427038974f0/headers/plugin_interface/SC_InlineUnaryOp.h#L35
+ *
+ * SuperCollider real time audio synthesis system
+ * Copyright (c) 2002 James McCartney. All rights reserved.
+ * http://www.audiosynth.com
+ *
+ * He says:
+ *      This is a function for preventing pathological math operations in ugens.
+ *      It can be used at the end of a block to fix any recirculating filter values.
+ */
+lpfloat_t zapgremlins(lpfloat_t x) {
+    lpfloat_t absx;
+    absx = fabs(x);
+    return (absx > (lpfloat_t)1e-15 && absx < (lpfloat_t)1e15) ? x : (lpfloat_t)0.f;
+}
+
+
