@@ -15,7 +15,7 @@ int main() {
     buffer_t * freq;
     buffer_t * wavelet;
     buffer_t * silence;
-    buffer_t * mod_curve;
+
     sineosc_t * osc;
     ringbuffer_t * ringbuf;
     int i, event, numticks;
@@ -41,10 +41,6 @@ int main() {
     length = 48;
     wavelet = SineOsc.render(osc, length, freq, amp, CHANNELS);
     Buffer.env(wavelet, env);
-
-    /* Create a "mod curve" with values between 3 and 11 to pass to the event modulo */
-    mod_curve = Window.create("sine", 4096);
-    Buffer.scale(mod_curve, 0, 1, 3, 11);
 
     /* Write some wavelet blips into the ring buffer */
     numticks = 80;
