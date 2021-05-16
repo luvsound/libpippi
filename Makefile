@@ -27,6 +27,9 @@ all:
 	echo "Building onset_detector.c example...";
 	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/onset_detector.c $(ALLSOURCES) -o build/onset_detector
 
+	echo "Building pitch_tracker.c example...";
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/pitch_tracker.c $(ALLSOURCES) -o build/pitch_tracker
+
 	echo "Building memory_pool.c example...";
 	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor -DLP_FLOAT -DLP_STATIC examples/memory_pool.c src/oscs.sine.c src/soundfile.c src/pippicore.c -o build/memorypool
 

@@ -42,7 +42,7 @@ typedef struct coyote_t {
 } coyote_t;
 
 typedef struct mir_pitch_factory_t {
-    buffer_t * (*pitch)(buffer_t *, lpfloat_t);
+    buffer_t * (*process)(buffer_t *, lpfloat_t);
 } mir_pitch_factory_t;
 
 typedef struct mir_onset_factory_t {
