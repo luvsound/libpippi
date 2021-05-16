@@ -6,6 +6,7 @@ Running `make` will build these example programs:
 - `examples/sineosc.c`
 - `examples/memory_pool.c`
 - `examples/ring_buffer.c`
+- `examples/onset_detector.c`
 
 ...and run them, depositing test renders into the 
 `renders` directory. 
