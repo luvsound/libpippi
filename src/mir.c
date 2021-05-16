@@ -153,8 +153,8 @@ lpfloat_t coyote_process(coyote_t * od, lpfloat_t sample) {
     out = trig;
 
     if((trig == 1) && (od->gate == 1)) {
-        od->e_time = 0.f;
-        od->gate = 0.f;
+        od->e_time = 0;
+        od->gate = 0;
     }
 
     if((od->e_time > (od->samplerate * od->min_dur)) && (od->gate == 0)) {

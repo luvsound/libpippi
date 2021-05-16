@@ -40,9 +40,22 @@ void ringbuffer_write(ringbuffer_t * ringbuf, buffer_t * buf) {
     }
 }
 
+void ringbuffer_dub(ringbuffer_t * ringbuf, buffer_t * buf) {
+    int i, c, j;
+    for(i=0; i < buf->length; i++) {
+        for(c=0; c < ringbuf->buf->channels; c++) {
+            j = c % buf->channels;
+            ringbuf->buf->data[ringbuf->pos * ringbuf->buf->channels + c] += buf->data[i * buf->channels + j];
+        }
+
+        ringbuf->pos += 1;
+        ringbuf->pos = ringbuf->pos % ringbuf->buf->length;
+    }
+}
+
 void ringbuffer_destroy(ringbuffer_t * ringbuf) {
     Buffer.destroy(ringbuf->buf);
     MemoryPool.free(ringbuf);
 }
 
-const ringbuffer_factory_t RingBuffer = { ringbuffer_create, ringbuffer_read, ringbuffer_write, ringbuffer_destroy };
+const ringbuffer_factory_t RingBuffer = { ringbuffer_create, ringbuffer_read, ringbuffer_write, ringbuffer_dub, ringbuffer_destroy };
