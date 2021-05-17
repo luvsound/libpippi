@@ -7,9 +7,11 @@ Running `make` will build these example programs:
 - `examples/memory_pool.c`
 - `examples/ring_buffer.c`
 - `examples/onset_detector.c`
+- `examples/pitch_tracker.c`
 
 ...and run them, depositing test renders into the 
 `renders` directory. 
 
 Running `make wavetables` will generate static 
 wavetable sources in the `generated` directory.
+
