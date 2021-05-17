@@ -12,38 +12,57 @@
  * https://github.com/earslap/SCPlugins
  */
 
-long * yin_difference_function(long * values, size_t N, size_t tau_max) {
-    size_t tau;
-    size_t j;
-    long tmp;
+/*
+typedef struct yin_t {
+    int length;
+    lpfloat_t * data;
+} yin_t;
+
+void aubio_pitchyin_diff(yin_t * yin, lpfloat_t * input) {
+  int j, tau;
+  lpfloat_t tmp;
+
+  for(tau=0; tau < yin->length; tau++) {
+    yin->data[tau] = 0.;
+  }
+  for(tau = 1; tau < yin->length; tau++) {
+    for(j = 0; j < yin->length; j++) {
+      tmp = input[j] - input[j + tau];
+      yin->data[tau] += tmp * tmp;
+    }
+  }
+}
+*/
+
+/* buffer_t * input == w_len */
+/* yin->data == tau_max */
+void yin_difference_function(buffer_t * yin, buffer_t * input, int tau_max) {
+    int j, tau;
+    lpfloat_t tmp;
 
     for(tau=1; tau < tau_max; tau++) {
-        for(j=0; j < N - tau_max; j++) {
-            tmp = (long)(values[j] - values[j + tau]);
-            values[tau] += tmp * tmp;
+        for(j=0; j < tau_max; j++) {
+            tmp = input->data[j] - input->data[j + tau];
+            yin->data[tau] += tmp * tmp;
         }
     }
-    
-    return values;
 }
 
 /**
  * `values` in this routine must be the result of the call to `yin_difference_function()`. 
  */
-long * yin_cumulative_mean_normalized_difference_function(long * values, size_t N) {
+void yin_cumulative_mean_normalized_difference_function(buffer_t * yin, int tau_max) {
     /* cmndf = df[1:] * range(1, N) / np.cumsum(df[1:]).astype(float) #scipy method */
-    long prev, denominator, value;
-    size_t i;
+    lpfloat_t prev, denominator, value;
+    int i;
 
     prev = 0;
-    for(i=1; i < N; i++) {
-        denominator = values[i] + prev;
-        value = (values[i] * i) / denominator;
+    for(i=1; i < tau_max; i++) {
+        denominator = yin->data[i] + prev;
+        value = (yin->data[i] * i) / denominator;
         prev = denominator;
-        values[i] = value;
+        yin->data[i] = value;
     }
-
-    return values;
 }
 
 /**
@@ -56,13 +75,12 @@ long * yin_cumulative_mean_normalized_difference_function(long * values, size_t 
  *
  * returns: fundamental period if there is values under threshold, 0 otherwise
  */
-lpfloat_t yin_get_pitch(long * values, size_t tau_min, size_t tau_max, lpfloat_t harmo_th) {
-    size_t tau;
-
+lpfloat_t yin_get_pitch(buffer_t * yin, int tau_min, int tau_max, lpfloat_t harmo_th) {
+    int tau;
     tau = tau_min;
     while (tau < tau_max) {
-        if(values[tau] < harmo_th) {
-            while(tau + 1 < tau_max && values[tau + 1] < values[tau]) {
+        if(yin->data[tau] < harmo_th) {
+            while(tau + 1 < tau_max && yin->data[tau + 1] < yin->data[tau]) {
                 tau += 1;
             }
             return tau;
@@ -75,43 +93,46 @@ lpfloat_t yin_get_pitch(long * values, size_t tau_min, size_t tau_max, lpfloat_t
 }
 
 buffer_t * yin_pitch(buffer_t * buf, lpfloat_t threshold) {
-    size_t num_pitches, count, i, j;
-    
-    size_t w_len, w_step, tau_min, tau_max; 
+    int num_pitches, count, i, j;
+    int w_len, w_step, tau_min, tau_max; 
     lpfloat_t f0_min, f0_max;
     lpfloat_t p, last_p;
 
-    long * block;
+    buffer_t * block; /* copy of the current input frame */
     buffer_t * out; /* Frequencies for each analysis window. */
+    buffer_t * yin; /* tau_max length buffer to store intermediary values during processing. */
 
     /* assume one channel to start */
     assert(buf->channels == 1); 
  
-    w_len = 512; /* analysis window size */
+    w_len = 1024; /* analysis window size */
     w_step = 256; /* lag between consecutive windows in samples */
-    f0_min = 20.f; /* Minimum possible frequency in hertz */
-    f0_max = 1000.f; /* Maximum possible frequency in hertz */
-    threshold = 0.1f; /* Threshold of detection. */
+    f0_min = 70.f; /* Minimum possible frequency in hertz */
+    f0_max = 900.f; /* Maximum possible frequency in hertz */
+    threshold = 0.85f; /* Threshold of detection. */
     p = 0.f; /* Yin result */
     last_p = 0.f; /* Last good freq -- set to default val */
-    tau_min = (size_t)(buf->samplerate / f0_max);
-    tau_max = (size_t)(buf->samplerate / f0_min);
 
-    block = (long *)MemoryPool.alloc(w_len, sizeof(lpfloat_t));
+    tau_min = (int)(buf->samplerate / f0_max);
+    tau_max = (int)(buf->samplerate / f0_min);
+
     num_pitches = (buf->length - w_len) / w_step;
     out = Buffer.create(num_pitches, 1, buf->samplerate);
+
+    block = Buffer.create(w_len, 1, buf->samplerate);
+    yin = Buffer.create(tau_max, 1, buf->samplerate);
 
     count = 0;
     for(i=0; i < buf->length - w_len; i += w_step) {
         /* Copy values into temp buffer */
-        for(j=0; j < w_step; j++) {
-            block[j] = (long)(buf->data[i + j] * buf->samplerate); 
+        for(j=0; j < w_len; j++) {
+            block->data[j] = buf->data[i + j]; 
         }
 
         /* Compute Yin */
-        yin_difference_function(block, w_len, tau_max);
-        yin_cumulative_mean_normalized_difference_function(block, tau_max);
-        p = yin_get_pitch(block, tau_min, tau_max, threshold);
+        yin_difference_function(yin, block, tau_max);
+        yin_cumulative_mean_normalized_difference_function(yin, tau_max);
+        p = yin_get_pitch(yin, tau_min, tau_max, threshold);
 
         /* Copy any pitches found to output buffer. */
         if(p != 0) {

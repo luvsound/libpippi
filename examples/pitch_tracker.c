@@ -5,36 +5,30 @@
 #define CHANNELS 1
 
 int main() {
-    lpfloat_t minfreq, maxfreq, amp, sample;
+    lpfloat_t minfreq, maxfreq, sample;
     size_t i, c, length;
-    buffer_t* freq_lfo;
-    buffer_t* out;
-    buffer_t* pitches;
-    sineosc_t* osc;
+    buffer_t * out;
+    buffer_t * pitches;
+    buffer_t * amp;
+    buffer_t * freq;
+    sineosc_t * osc;
 
     minfreq = 80.0;
     maxfreq = 800.0;
-    amp = 0.2;
+    amp = Param.from_float(0.2);
 
     length = 10 * SR;
 
     /* Make an LFO table to use as a frequency curve for the osc */
-    freq_lfo = Window.create("sine", BS);
+    freq = Window.create("sine", BS);
 
     /* Scale it from a range of -1 to 1 to a range of minfreq to maxfreq */
-    Buffer.scale(freq_lfo, 0, 1, minfreq, maxfreq);
+    Buffer.scale(freq, 0, 1, minfreq, maxfreq);
 
-    out = Buffer.create(length, CHANNELS, SR);
     osc = SineOsc.create();
     osc->samplerate = SR;
 
-    for(i=0; i < length; i++) {
-        osc->freq = Interpolation.linear_pos(freq_lfo, (double)i/length);
-        sample = SineOsc.process(osc) * amp;
-        for(c=0; c < CHANNELS; c++) {
-            out->data[i * CHANNELS + c] = sample;
-        }
-    }
+    out = SineOsc.render(osc, length, freq, amp, CHANNELS);
 
     pitches = PitchTracker.process(out, 0.85f);
     Buffer.scale(pitches, 0, 1000, 0, 1);
@@ -43,7 +37,8 @@ int main() {
 
     SineOsc.destroy(osc);
     Buffer.destroy(out);
-    Buffer.destroy(freq_lfo);
+    Buffer.destroy(freq);
+    Buffer.destroy(amp);
     Buffer.destroy(pitches);
 
     return 0;
