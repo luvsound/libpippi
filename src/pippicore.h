@@ -39,7 +39,10 @@ typedef struct buffer_t {
     size_t length;
     int samplerate;
     int channels;
+
+    /* used for different types of playback */
     lpfloat_t phase;
+    size_t pos;
 } buffer_t;
 
 /* Factories */
@@ -59,13 +62,29 @@ typedef struct param_factory_t {
     buffer_t * (*from_int)(int);
 } param_factory_t;
 
+/* Users may create custom memorypools. 
+ * If the primary memorypool is active, 
+ * it will be used to allocate the pool.
+ *
+ * Otherwise initializtion of the pool 
+ * will use the stdlib to calloc the space.
+ */
+typedef struct memorypool_t {
+    unsigned char * pool;
+    size_t poolsize;
+    size_t pos;
+} memorypool_t;
+
 typedef struct memorypool_factory_t {
+    /* This is the primary memorypool. */
     unsigned char * pool;
     size_t poolsize;
     size_t pos;
 
     void (*init)(unsigned char *, size_t);
+    memorypool_t * (*custom_init)(unsigned char *, size_t);
     void * (*alloc)(size_t, size_t);
+    void * (*custom_alloc)(memorypool_t *, size_t, size_t);
     void (*free)(void *);
 } memorypool_factory_t;
 

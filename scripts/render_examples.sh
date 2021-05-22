@@ -16,3 +16,6 @@ time ./build/pitch_tracker
 
 echo "Rendering memorypool example..."
 time ./build/memorypool
+
+echo "Rendering scheduler example..."
+time ./build/scheduler

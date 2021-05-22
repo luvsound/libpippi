@@ -5,8 +5,8 @@
 #define CHANNELS 1
 
 int main() {
-    lpfloat_t minfreq, maxfreq, sample;
-    size_t i, c, length;
+    lpfloat_t minfreq, maxfreq;
+    size_t length;
     buffer_t * out;
     buffer_t * pitches;
     buffer_t * amp;

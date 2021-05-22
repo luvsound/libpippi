@@ -7,6 +7,7 @@ ALLSOURCES = src/oscs.sine.c \
 	src/mir.c \
 	src/ringbuffer.c \
 	src/soundfile.c \
+	src/scheduler.c \
 	src/pippicore.c
 
 wavetables:
@@ -16,13 +17,13 @@ all:
 	mkdir -p build renders
 
 	echo "Building pulsarosc.c example...";
-	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/pulsarosc.c $(ALLSOURCES) -o build/pulsarosc
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/pulsarosc.c $(ALLSOURCES) -o build/pulsarosc
 	
 	echo "Building sineosc.c example...";
-	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/sineosc.c $(ALLSOURCES) -o build/sineosc
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/sineosc.c $(ALLSOURCES) -o build/sineosc
 
 	echo "Building ring_buffer.c example...";
-	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/ring_buffer.c $(ALLSOURCES) -o build/ring_buffer
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/ring_buffer.c $(ALLSOURCES) -o build/ring_buffer
 
 	echo "Building onset_detector.c example...";
 	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/onset_detector.c $(ALLSOURCES) -o build/onset_detector
@@ -31,7 +32,10 @@ all:
 	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/pitch_tracker.c $(ALLSOURCES) -o build/pitch_tracker
 
 	echo "Building memory_pool.c example...";
-	gcc -std=c89 -Wall -pedantic -lm -Isrc -Ivendor -DLP_FLOAT -DLP_STATIC examples/memory_pool.c src/oscs.sine.c src/soundfile.c src/pippicore.c -o build/memorypool
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor -DLP_FLOAT -DLP_STATIC examples/memory_pool.c src/oscs.sine.c src/soundfile.c src/pippicore.c -o build/memorypool
+
+	echo "Building scheduler.c example...";
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/scheduler.c $(ALLSOURCES) -o build/scheduler
 
 	echo "Rendering examples..."
 	./scripts/render_examples.sh

@@ -11,8 +11,10 @@ buffer_t * copy_buffer(buffer_t * buf);
 buffer_t * mix_buffers(buffer_t * a, buffer_t * b);
 void destroy_buffer(buffer_t * buf);
 
-void * memorypool_alloc(size_t itemcount, size_t itemsize);
 void memorypool_init(unsigned char * pool, size_t poolsize);
+memorypool_t * memorypool_custom_init(unsigned char * pool, size_t poolsize);
+void * memorypool_alloc(size_t itemcount, size_t itemsize);
+void * memorypool_custom_alloc(memorypool_t * pool, size_t itemcount, size_t itemsize);
 void memorypool_free(void * ptr);
 
 lpfloat_t interpolate_hermite(buffer_t* buf, lpfloat_t phase);
@@ -29,7 +31,7 @@ buffer_t* create_window(char* name, size_t length);
 void destroy_window(buffer_t* buf);
 
 /* Populate interfaces */
-memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_alloc, memorypool_free };
+memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_custom_init, memorypool_alloc, memorypool_custom_alloc, memorypool_free };
 const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, env_buffer, destroy_buffer };
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
 const param_factory_t Param = { param_create_from_float, param_create_from_int };
@@ -47,6 +49,7 @@ buffer_t * create_buffer(size_t length, int channels, int samplerate) {
     buf->length = length;
     buf->samplerate = samplerate;
     buf->phase = 0.f;
+    buf->pos = 0;
     return buf;
 }
 
@@ -187,6 +190,34 @@ void memorypool_init(unsigned char * pool, size_t poolsize) {
     MemoryPool.pool = pool;
     MemoryPool.poolsize = poolsize;
     MemoryPool.pos = 0;
+}
+
+memorypool_t * memorypool_custom_init(unsigned char * pool, size_t poolsize) {
+    memorypool_t * mp;
+    mp = (memorypool_t *)MemoryPool.alloc(1, sizeof(memorypool_t));
+
+    assert(poolsize >= 1);
+    mp->pool = pool;
+    mp->poolsize = poolsize;
+    mp->pos = 0;
+
+    return mp;
+}
+
+void * memorypool_custom_alloc(memorypool_t * mp, size_t itemcount, size_t itemsize) {
+    void * p;
+    size_t length;
+
+    assert(mp->pool != 0); 
+    length = itemcount * itemsize;
+
+    if(mp->poolsize >= mp->pos + length) {
+        p = (void *)(&mp->pool[mp->pos]);
+        mp->pos += length;
+        return p;
+    }
+    /* FIXME might as well try to expand the pool here */
+    exit(EXIT_FAILURE);
 }
 
 void * memorypool_alloc(size_t itemcount, size_t itemsize) {
