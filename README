@@ -8,6 +8,7 @@ Running `make` will build these example programs:
 - `examples/ring_buffer.c`
 - `examples/onset_detector.c`
 - `examples/pitch_tracker.c`
+- `examples/scheduler.c`
 
 ...and run them, depositing test renders into the 
 `renders` directory. 
