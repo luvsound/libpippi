@@ -3,6 +3,15 @@ Core:
     Maybe split core implementation up into core.*.c files?
         Not to be modular, just to organize the sources a bit...
 
+Microsound:
+    GrainProvider first pass
+        sources: buffer, process callback
+    Buffer stack routines?
+    Waveset segmentation
+
 MIR:
-    Finish porting Yin
+    Refactor yin:
+        single-sample provider
+        optional default prefill value
+        expose tolerance?
 
