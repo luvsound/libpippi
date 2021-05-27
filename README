@@ -9,6 +9,7 @@ Running `make` will build these example programs:
 - `examples/onset_detector.c`
 - `examples/pitch_tracker.c`
 - `examples/scheduler.c`
+- `examples/additive_synthesis.c`
 
 ...and run them, depositing test renders into the 
 `renders` directory. 

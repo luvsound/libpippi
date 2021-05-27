@@ -2,6 +2,7 @@ Core:
     Add compile-time option for static tables...
     Maybe split core implementation up into core.*.c files?
         Not to be modular, just to organize the sources a bit...
+    Probably all non-factory types should have an lp prefix
 
 Microsound:
     GrainProvider first pass
@@ -9,4 +10,15 @@ Microsound:
     Buffer stack routines?
     Waveset segmentation
 
+Scheduler:
+    Add rendering_stack_head
+    event_t should support some internal ugen abstraction (lpugen_t?)
+    ugen abstraction should support lifecycle interfaces for:
+        - libpippi ugens (easy)
+        - soundpipe ugens (probably straightforward)
+    ugens should be composable into arbitary graphs, ideally via an embedded scripting language as per previous discussions with PB!
+    ugen graphs should allow injection of contexts to support external control (like MIDI or OSC or whatever)
+
+    what does an instrument script look like in libpippi?
+        - offline rendering vs realtime ugen graphs
 
