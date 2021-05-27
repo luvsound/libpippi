@@ -29,6 +29,7 @@ typedef double lpfloat_t;
 #define TRI "tri"
 #define PHASOR "phasor"
 #define HANN "hann"
+#define RND "rnd"
 
 #define DEFAULT_CHANNELS 2
 #define DEFAULT_SAMPLERATE 48000
@@ -45,7 +46,15 @@ typedef struct buffer_t {
     size_t pos;
 } buffer_t;
 
-/* Factories */
+/* Factories & static interfaces */
+typedef struct lprand_t {
+    void (*seed)(int);
+    lpfloat_t (*rand)(lpfloat_t, lpfloat_t);
+    int (*randint)(int, int);
+    int (*randbool)(void);
+    int (*choice)(int);
+} lprand_t;
+
 typedef struct buffer_factory_t {
     buffer_t * (*create)(size_t, int, int);
     void (*scale)(buffer_t *, lpfloat_t, lpfloat_t, lpfloat_t, lpfloat_t);
@@ -107,6 +116,7 @@ typedef struct window_factory_t {
 
 
 /* Interfaces */
+extern const lprand_t Rand;
 extern const buffer_factory_t Buffer;
 extern memorypool_factory_t MemoryPool;
 extern const interpolation_factory_t Interpolation;

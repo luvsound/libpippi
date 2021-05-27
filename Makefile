@@ -37,5 +37,8 @@ all:
 	echo "Building scheduler.c example...";
 	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/scheduler.c $(ALLSOURCES) -o build/scheduler
 
+	echo "Building additive_synthesis.c example...";
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/additive_synthesis.c $(ALLSOURCES) -o build/additive_synthesis
+
 	echo "Rendering examples..."
 	./scripts/render_examples.sh

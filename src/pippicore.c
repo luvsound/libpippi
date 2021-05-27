@@ -1,6 +1,12 @@
 #include "pippicore.h"
 
 /* Forward declarations */
+void rand_seed(int value);
+lpfloat_t rand_rand(lpfloat_t low, lpfloat_t high);
+int rand_randint(int low, int high);
+int rand_randbool(void);
+int rand_choice(int numchoices);
+
 buffer_t * create_buffer(size_t length, int channels, int samplerate);
 void scale_buffer(buffer_t * buf, lpfloat_t from_min, lpfloat_t from_max, lpfloat_t to_min, lpfloat_t to_max);
 void multiply_buffer(buffer_t * a, buffer_t * b);
@@ -31,6 +37,7 @@ buffer_t* create_window(char* name, size_t length);
 void destroy_window(buffer_t* buf);
 
 /* Populate interfaces */
+const lprand_t Rand = { rand_seed, rand_rand, rand_randint, rand_randbool, rand_choice };
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_custom_init, memorypool_alloc, memorypool_custom_alloc, memorypool_free };
 const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, env_buffer, destroy_buffer };
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
@@ -38,6 +45,37 @@ const param_factory_t Param = { param_create_from_float, param_create_from_int }
 const wavetable_factory_t Wavetable = { create_wavetable, destroy_wavetable };
 const window_factory_t Window = { create_window, destroy_window };
 
+/** Rand
+ */
+void rand_seed(int value) {
+    srand((unsigned int)value);
+}
+
+lpfloat_t rand_rand(lpfloat_t low, lpfloat_t high) {
+    return (rand()/(lpfloat_t)RAND_MAX) * (high-low) + low;
+}
+
+int rand_randint(int low, int high) {
+    float diff, tmp;
+
+    tmp = (float)rand_rand((lpfloat_t)low, (lpfloat_t)high);
+    diff = (int)tmp - tmp;
+
+    if(diff >= 0.5f) {
+        return (int)ceil(tmp);
+    } else {
+        return (int)floor(tmp);
+    }
+}
+
+int rand_randbool(void) {
+    return rand_randint(0, 1);
+}
+
+int rand_choice(int numchoices) {
+    assert(numchoices > 1);
+    return rand_randint(0, numchoices-1);
+}
 
 /* Buffer
  * */
@@ -406,6 +444,33 @@ void window_hanning(lpfloat_t* out, int length) {
     }
 }
 
+char * random_window(void) {
+    char * name;
+    int choice = rand_choice(4);
+    switch (choice) {
+        case 0:
+            name = (char *)PHASOR;
+            break;
+
+        case 1:
+            name = (char *)TRI;
+            break;
+
+        case 2:
+            name = (char *)SINE;
+            break;
+
+        case 3:
+            name = (char *)HANN;
+            break;
+
+        default:
+            name = (char *)SINE;
+    }
+
+    return name;
+}
+
 
 /* create a window (0 to 1) */
 buffer_t* create_window(char* name, size_t length) {
@@ -418,6 +483,8 @@ buffer_t* create_window(char* name, size_t length) {
         window_phasor(buf->data, length);            
     } else if (strcmp(name, HANN) == 0) {
         window_hanning(buf->data, length);            
+    } else if (strcmp(name, RND) == 0) {
+        return create_window(random_window(), length);
     } else {
         window_sine(buf->data, length);            
     }

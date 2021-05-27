@@ -19,3 +19,6 @@ time ./build/memorypool
 
 echo "Rendering scheduler example..."
 time ./build/scheduler
+
+echo "Rendering additive synthesis example..."
+time ./build/additive_synthesis
