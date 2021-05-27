@@ -69,7 +69,7 @@ lpfloat_t yin_process(yin_t * yin, lpfloat_t sample) {
         p = yin_get_pitch(yin);
         yin->elapsed = 0;
     } else {
-        p = yin->fallback;
+        p = yin->last_pitch;
     }
 
     yin->elapsed += 1;
@@ -93,7 +93,7 @@ yin_t * yin_create(int blocksize, int samplerate) {
     yin->block = Buffer.create(yin->blocksize, 1, samplerate);
     yin->tmp = Buffer.create(yin->tau_max, 1, samplerate);
     yin->fallback = 0.f; /* Fallback pitch in hz for output values before any pitch is detected */
-    yin->last_pitch = 0.f;
+    yin->last_pitch = yin->fallback;
     yin->threshold = 0.85f;
     yin->offset = 0;
     yin->elapsed = 0;

@@ -5,7 +5,7 @@
 #define CHANNELS 1
 
 int main() {
-    lpfloat_t minfreq, maxfreq;
+    lpfloat_t minfreq, maxfreq, sample;
     size_t length;
     buffer_t * out;
     buffer_t * reference;
@@ -36,20 +36,28 @@ int main() {
     out = Buffer.create(length, CHANNELS, SR);
 
     osc2 = SineOsc.create();
+    osc2->freq = 220.f;
+
     yin = PitchTracker.yin_create(4096, SR);
+    yin->fallback = 220.f;
+
     last_p = -1;
     p = 0;
     for(i=0; i < length; i++) {
-        p = PitchTracker.yin_process(yin, reference->data[i * out->channels]);
+        p = PitchTracker.yin_process(yin, reference->data[i * CHANNELS]);
         if(p > 0 && p != last_p) {
             osc2->freq = p;
             last_p = p;
         }
 
+        sample = SineOsc.process(osc2);
+
         for(c=0; c < CHANNELS; c++) {
-            out->data[i * CHANNELS + c] = SineOsc.process(osc2);
+            out->data[i * CHANNELS + c] = sample;
         }
     }
+
+    SoundFile.write("renders/pitch_tracker-out.wav", out);
 
     SineOsc.destroy(osc);
     SineOsc.destroy(osc2);
