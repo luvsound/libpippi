@@ -1,7 +1,5 @@
 #include "scheduler.h"
 
-#define MAX_EVENTS 10000000
-
 scheduler_t * scheduler_create(int);
 lpfloat_t scheduler_read_channel(scheduler_t * s, int channel);
 void scheduler_schedule_event(scheduler_t * s, buffer_t * buf, size_t delay);
@@ -128,14 +126,8 @@ void stop_playing(scheduler_t * s, event_t * e) {
 
 scheduler_t * scheduler_create(int channels) {
     scheduler_t * s;
-    size_t poolsize;
-    unsigned char * pool;
 
     s = (scheduler_t *)MemoryPool.alloc(1, sizeof(scheduler_t));
-
-    poolsize = MAX_EVENTS * sizeof(event_t);
-    pool = (unsigned char *)MemoryPool.alloc(poolsize, sizeof(unsigned char));
-    s->pool = MemoryPool.custom_init(pool, poolsize);
 
     s->waiting_queue_head = NULL;
     s->playing_stack_head = NULL;
@@ -278,7 +270,7 @@ void scheduler_schedule_event(scheduler_t * s, buffer_t * buf, size_t delay) {
      * if delay > 0 add event to waiting queue
      * else add event directly to playing stack
      */
-    e = (event_t *)MemoryPool.custom_alloc(s->pool, 1, sizeof(event_t));
+    e = (event_t *)MemoryPool.alloc(1, sizeof(event_t));
 
     s->event_count += 1;
     e->id = s->event_count;
@@ -303,6 +295,45 @@ int scheduler_count_done(scheduler_t * s) {
 
 void scheduler_destroy(scheduler_t * s) {
     /* Loop over queues and free buffers, events */
+    event_t * current;
+    event_t * next;
+
+    if(s->waiting_queue_head) {
+        current = s->waiting_queue_head;
+        while(current->next != NULL) {
+            next = (event_t *)current->next;
+            Buffer.destroy(current->buf);
+            MemoryPool.free(current);
+            current = (event_t *)next;        
+        }
+        Buffer.destroy(current->buf);
+        MemoryPool.free(current);
+    }
+
+    if(s->playing_stack_head) {
+        current = s->playing_stack_head;
+        while(current->next != NULL) {
+            next = (event_t *)current->next;
+            Buffer.destroy(current->buf);
+            MemoryPool.free(current);
+            current = (event_t *)next;        
+        }
+        Buffer.destroy(current->buf);
+        MemoryPool.free(current);
+    }
+
+    if(s->garbage_stack_head) {
+        current = s->garbage_stack_head;
+        while(current->next != NULL) {
+            next = (event_t *)current->next;
+            Buffer.destroy(current->buf);
+            MemoryPool.free(current);
+            current = (event_t *)next;        
+        }
+        Buffer.destroy(current->buf);
+        MemoryPool.free(current);
+    }
+    MemoryPool.free(s->current_frame);
     MemoryPool.free(s);
 }
 

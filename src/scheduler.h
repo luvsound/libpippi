@@ -12,7 +12,6 @@ typedef struct event_t {
 } event_t;
 
 typedef struct scheduler_t {
-    memorypool_t * pool;
     lpfloat_t * current_frame;
     int channels;
     size_t now;

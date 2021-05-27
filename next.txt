@@ -9,9 +9,4 @@ Microsound:
     Buffer stack routines?
     Waveset segmentation
 
-MIR:
-    Refactor yin:
-        single-sample provider
-        optional default prefill value
-        expose tolerance?
 
