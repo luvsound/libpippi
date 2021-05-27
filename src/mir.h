@@ -2,6 +2,24 @@
 #define LP_MIR_H
 
 #include "pippicore.h"
+#include "ringbuffer.h"
+
+typedef struct yin_t {
+    buffer_t * block;
+    int samplerate;
+    int blocksize;
+    int stepsize; /* overlap between analysis blocks */
+    lpfloat_t last_pitch;
+    lpfloat_t threshold;
+    lpfloat_t fallback;
+    int offset;
+    int elapsed;
+
+    buffer_t * tmp; /* Temp buffer for processing */
+
+    int tau_max;
+    int tau_min;
+} yin_t;
 
 /**
  * Coyote onset detector ported with permission from 
@@ -42,7 +60,9 @@ typedef struct coyote_t {
 } coyote_t;
 
 typedef struct mir_pitch_factory_t {
-    buffer_t * (*process)(buffer_t *, lpfloat_t);
+    yin_t * (*yin_create)(int, int);
+    lpfloat_t (*yin_process)(yin_t *, lpfloat_t);
+    void (*yin_destroy)(yin_t *);
 } mir_pitch_factory_t;
 
 typedef struct mir_onset_factory_t {

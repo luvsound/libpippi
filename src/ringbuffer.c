@@ -8,6 +8,10 @@ ringbuffer_t * ringbuffer_create(size_t length, int channels, int samplerate) {
     return ringbuf;
 }
 
+lpfloat_t ringbuffer_readone(ringbuffer_t * ringbuf) {
+    return ringbuf->buf->data[(ringbuf->pos-1) % ringbuf->buf->length];
+}
+
 buffer_t * ringbuffer_read(ringbuffer_t * ringbuf, size_t length) {
     int i, c;
     size_t pos = ringbuf->pos - length;
@@ -25,6 +29,12 @@ buffer_t * ringbuffer_read(ringbuffer_t * ringbuf, size_t length) {
     }
 
     return out;
+}
+
+void ringbuffer_writeone(ringbuffer_t * ringbuf, lpfloat_t sample) {
+    ringbuf->buf->data[ringbuf->pos] = sample;
+    ringbuf->pos += 1;
+    ringbuf->pos = ringbuf->pos % ringbuf->buf->length;
 }
 
 void ringbuffer_write(ringbuffer_t * ringbuf, buffer_t * buf) {
@@ -58,4 +68,4 @@ void ringbuffer_destroy(ringbuffer_t * ringbuf) {
     MemoryPool.free(ringbuf);
 }
 
-const ringbuffer_factory_t RingBuffer = { ringbuffer_create, ringbuffer_read, ringbuffer_write, ringbuffer_dub, ringbuffer_destroy };
+const ringbuffer_factory_t RingBuffer = { ringbuffer_create, ringbuffer_read, ringbuffer_write, ringbuffer_readone, ringbuffer_writeone, ringbuffer_dub, ringbuffer_destroy };
