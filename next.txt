@@ -1,7 +1,6 @@
 Core:
     Add compile-time option for static tables...
-    Maybe split core implementation up into core.*.c files?
-        Not to be modular, just to organize the sources a bit...
+    port more wavetables & windows
     Probably all non-factory types should have an lp prefix
 
 Microsound:
@@ -9,6 +8,10 @@ Microsound:
         sources: buffer, process callback
     Buffer stack routines?
     Waveset segmentation
+
+FX:
+    port butterworth lowpass from sndkit?
+    port Will's SVFs from pippi
 
 Scheduler:
     Add rendering_stack_head

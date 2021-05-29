@@ -44,6 +44,7 @@ int main() {
     Buffer.destroy(out);
     Buffer.destroy(freq);
     Buffer.destroy(amp);
+    Buffer.destroy(halfsec);
 
     return 0;
 }
