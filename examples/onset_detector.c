@@ -24,7 +24,7 @@ int main() {
 
 
     /* 1 second ring buffer */
-    ringbuf = RingBuffer.create(SR, CHANNELS, SR); 
+    ringbuf = LPRingBuffer.create(SR, CHANNELS, SR); 
 
     /* 60 frames of silence */
     silence = Buffer.create(600, CHANNELS, SR);
@@ -47,9 +47,9 @@ int main() {
     for(i=0; i < numticks; i++) {
         event = (i % 11 == 0) ? 1 : 0;
         if(event) {
-            RingBuffer.dub(ringbuf, wavelet);
+            LPRingBuffer.dub(ringbuf, wavelet);
         } else {
-            RingBuffer.dub(ringbuf, silence);
+            LPRingBuffer.dub(ringbuf, silence);
         }
     }
 

@@ -1,7 +1,12 @@
 #include "pippicore.h"
 
+#define LOGISTIC_SEED_DEFAULT 3.999
+#define LOGISTIC_X_DEFAULT 0.555
+
 /* Forward declarations */
 void rand_seed(int value);
+lpfloat_t rand_base_logistic(lpfloat_t low, lpfloat_t high);
+lpfloat_t rand_base_stdlib(lpfloat_t low, lpfloat_t high);
 lpfloat_t rand_rand(lpfloat_t low, lpfloat_t high);
 int rand_randint(int low, int high);
 int rand_randbool(void);
@@ -31,13 +36,13 @@ lpfloat_t interpolate_linear_pos(buffer_t* buf, lpfloat_t pos);
 buffer_t * param_create_from_float(lpfloat_t value);
 buffer_t * param_create_from_int(int value);
 
-buffer_t* create_wavetable(char* name, size_t length);
+buffer_t* create_wavetable(const char * name, size_t length);
 void destroy_wavetable(buffer_t* buf);
-buffer_t* create_window(char* name, size_t length);
+buffer_t* create_window(const char * name, size_t length);
 void destroy_window(buffer_t* buf);
 
 /* Populate interfaces */
-const lprand_t Rand = { rand_seed, rand_rand, rand_randint, rand_randbool, rand_choice };
+lprand_t Rand = { LOGISTIC_SEED_DEFAULT, LOGISTIC_X_DEFAULT, rand_seed, rand_base_logistic, rand_base_stdlib, rand_rand, rand_randint, rand_randbool, rand_choice };
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_custom_init, memorypool_alloc, memorypool_custom_alloc, memorypool_free };
 const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, env_buffer, destroy_buffer };
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
@@ -51,8 +56,17 @@ void rand_seed(int value) {
     srand((unsigned int)value);
 }
 
-lpfloat_t rand_rand(lpfloat_t low, lpfloat_t high) {
+lpfloat_t rand_base_stdlib(lpfloat_t low, lpfloat_t high) {
     return (rand()/(lpfloat_t)RAND_MAX) * (high-low) + low;
+}
+
+lpfloat_t rand_base_logistic(lpfloat_t low, lpfloat_t high) {
+    Rand.logistic_x = Rand.logistic_seed * Rand.logistic_x * (1.f - Rand.logistic_x);
+    return Rand.logistic_x * (high-low) + low;
+}
+
+lpfloat_t rand_rand(lpfloat_t low, lpfloat_t high) {
+    return Rand.rand_base(low, high);
 }
 
 int rand_randint(int low, int high) {
@@ -88,6 +102,7 @@ buffer_t * create_buffer(size_t length, int channels, int samplerate) {
     buf->samplerate = samplerate;
     buf->phase = 0.f;
     buf->pos = 0;
+    buf->range = length;
     return buf;
 }
 
@@ -392,7 +407,7 @@ void wavetable_tri(lpfloat_t* out, int length) {
 
 
 /* create a wavetable (-1 to 1) */
-buffer_t* create_wavetable(char* name, size_t length) {
+buffer_t* create_wavetable(const char * name, size_t length) {
     buffer_t* buf = Buffer.create(length, 1, -1);
     if(strcmp(name, SINE) == 0) {
         wavetable_sine(buf->data, length);            
@@ -473,7 +488,7 @@ char * random_window(void) {
 
 
 /* create a window (0 to 1) */
-buffer_t* create_window(char* name, size_t length) {
+buffer_t* create_window(const char * name, size_t length) {
     buffer_t* buf = Buffer.create(length, 1, -1);
     if(strcmp(name, SINE) == 0) {
         window_sine(buf->data, length);            

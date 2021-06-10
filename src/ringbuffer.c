@@ -8,8 +8,22 @@ ringbuffer_t * ringbuffer_create(size_t length, int channels, int samplerate) {
     return ringbuf;
 }
 
-lpfloat_t ringbuffer_readone(ringbuffer_t * ringbuf) {
-    return ringbuf->buf->data[(ringbuf->pos-1) % ringbuf->buf->length];
+void ringbuffer_fill(ringbuffer_t * ringbuf, buffer_t * buf, int offset) {
+    int i, c;
+    size_t pos = ringbuf->pos - buf->length - offset;
+    pos = pos % ringbuf->buf->length;
+    for(i=0; i < buf->length; i++) {
+        for(c=0; c < ringbuf->buf->channels; c++) {
+            buf->data[i * buf->channels + c] = ringbuf->buf->data[pos * ringbuf->buf->channels + c];
+        }
+
+        pos += 1;
+        pos = pos % ringbuf->buf->length;
+    }
+}
+
+lpfloat_t ringbuffer_readone(ringbuffer_t * ringbuf, int offset) {
+    return ringbuf->buf->data[(ringbuf->pos - offset) % ringbuf->buf->length];
 }
 
 buffer_t * ringbuffer_read(ringbuffer_t * ringbuf, size_t length) {
@@ -35,6 +49,19 @@ void ringbuffer_writeone(ringbuffer_t * ringbuf, lpfloat_t sample) {
     ringbuf->buf->data[ringbuf->pos] = sample;
     ringbuf->pos += 1;
     ringbuf->pos = ringbuf->pos % ringbuf->buf->length;
+}
+
+void ringbuffer_writefrom(ringbuffer_t * ringbuf, lpfloat_t * data, int length, int channels) {
+    int i, c, j;
+    for(i=0; i < length; i++) {
+        for(c=0; c < ringbuf->buf->channels; c++) {
+            j = c % channels;
+            ringbuf->buf->data[ringbuf->pos * ringbuf->buf->channels + c] = data[i * channels + j];
+        }
+
+        ringbuf->pos += 1;
+        ringbuf->pos = ringbuf->pos % ringbuf->buf->length;
+    }
 }
 
 void ringbuffer_write(ringbuffer_t * ringbuf, buffer_t * buf) {
@@ -68,4 +95,4 @@ void ringbuffer_destroy(ringbuffer_t * ringbuf) {
     MemoryPool.free(ringbuf);
 }
 
-const ringbuffer_factory_t RingBuffer = { ringbuffer_create, ringbuffer_read, ringbuffer_write, ringbuffer_readone, ringbuffer_writeone, ringbuffer_dub, ringbuffer_destroy };
+const ringbuffer_factory_t LPRingBuffer = { ringbuffer_create, ringbuffer_fill, ringbuffer_read, ringbuffer_writefrom, ringbuffer_write, ringbuffer_readone, ringbuffer_writeone, ringbuffer_dub, ringbuffer_destroy };

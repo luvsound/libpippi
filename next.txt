@@ -11,6 +11,7 @@ Microsound:
 
 FX:
     port butterworth lowpass from sndkit?
+        might as well give JOS another shot first, too...
     port Will's SVFs from pippi
 
 Scheduler:

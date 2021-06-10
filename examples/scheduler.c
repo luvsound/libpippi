@@ -79,6 +79,7 @@ int main() {
     Buffer.destroy(freq);
     Buffer.destroy(amp);
     Buffer.destroy(out);
+    Buffer.destroy(env);
     Scheduler.destroy(s);
 
     return 0;

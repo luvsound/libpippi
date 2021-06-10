@@ -12,10 +12,10 @@ void ll_display(event_t * head) {
     if(head) {
         current = head;
         while(current->next != NULL) {
-            printf("    e%d onset: %d pos: %d length: %d\n", (int)current->id, (int)current->onset, (int)current->buf->pos, (int)current->buf->length);
+            printf("    e%d onset: %d pos: %d length: %d\n", (int)current->id, (int)current->onset, (int)current->pos, (int)current->buf->length);
             current = (event_t *)current->next;        
         }
-        printf("    e%d onset: %d pos: %d length: %d\n", (int)current->id, (int)current->onset, (int)current->buf->pos, (int)current->buf->length);
+        printf("    e%d onset: %d pos: %d length: %d\n", (int)current->id, (int)current->onset, (int)current->pos, (int)current->buf->length);
     }
 }
 
@@ -165,12 +165,12 @@ void scheduler_update(scheduler_t * s) {
         current = s->playing_stack_head;
         while(current->next != NULL) {
             next = current->next;
-            if(current->buf->pos >= current->buf->length-1) {
+            if(current->pos >= current->buf->length-1) {
                 stop_playing(s, current);
             }
             current = (event_t *)next;
         }
-        if(current->buf->pos >= current->buf->length-1) {
+        if(current->pos >= current->buf->length-1) {
             stop_playing(s, current);
         }
 
@@ -196,16 +196,16 @@ void scheduler_mix_buffers(scheduler_t * s) {
 
         current = s->playing_stack_head;
         while(current->next != NULL) {
-            if(current->buf->pos < current->buf->length) {
+            if(current->pos < current->buf->length) {
                 bufc = c % current->buf->channels;
-                sample += current->buf->data[current->buf->pos * current->buf->channels + bufc];
+                sample += current->buf->data[current->pos * current->buf->channels + bufc];
             }
             current = (event_t *)current->next;
         }
 
-        if(current->buf->pos < current->buf->length) {
+        if(current->pos < current->buf->length) {
             bufc = c % current->buf->channels;
-            sample += current->buf->data[current->buf->pos * current->buf->channels + bufc];
+            sample += current->buf->data[current->pos * current->buf->channels + bufc];
         }
  
         s->current_frame[c] = sample;
@@ -219,10 +219,10 @@ void scheduler_advance_buffers(scheduler_t * s) {
     if(s->playing_stack_head != NULL) {
         current = s->playing_stack_head;
         while(current->next != NULL) {
-            current->buf->pos += 1;
+            current->pos += 1;
             current = (event_t *)current->next;
         }
-        current->buf->pos += 1;
+        current->pos += 1;
     }
 }
 
@@ -265,17 +265,24 @@ void scheduler_tick(scheduler_t * s) {
 
 void scheduler_schedule_event(scheduler_t * s, buffer_t * buf, size_t delay) {
     event_t * e;
+    event_t * prev;
 
-    /* create Event & populate
-     * if delay > 0 add event to waiting queue
-     * else add event directly to playing stack
-     */
-    e = (event_t *)MemoryPool.alloc(1, sizeof(event_t));
+    prev = NULL;
+    if(s->garbage_stack_head) {
+        e = s->garbage_stack_head;
+        while(e->next != NULL) {
+            prev = e;
+            e = (event_t *)e->next;        
+        }
+        if(prev) prev->next = NULL;
+    } else {
+        e = (event_t *)MemoryPool.alloc(1, sizeof(event_t));
+        s->event_count += 1;
+        e->id = s->event_count;
+    }
 
-    s->event_count += 1;
-    e->id = s->event_count;
     e->buf = buf;
-    e->buf->pos = 0;
+    e->pos = 0;
     e->onset = s->now + delay;
 
     start_waiting(s, e);
@@ -302,11 +309,9 @@ void scheduler_destroy(scheduler_t * s) {
         current = s->waiting_queue_head;
         while(current->next != NULL) {
             next = (event_t *)current->next;
-            Buffer.destroy(current->buf);
             MemoryPool.free(current);
             current = (event_t *)next;        
         }
-        Buffer.destroy(current->buf);
         MemoryPool.free(current);
     }
 
@@ -314,11 +319,9 @@ void scheduler_destroy(scheduler_t * s) {
         current = s->playing_stack_head;
         while(current->next != NULL) {
             next = (event_t *)current->next;
-            Buffer.destroy(current->buf);
             MemoryPool.free(current);
             current = (event_t *)next;        
         }
-        Buffer.destroy(current->buf);
         MemoryPool.free(current);
     }
 
@@ -326,11 +329,9 @@ void scheduler_destroy(scheduler_t * s) {
         current = s->garbage_stack_head;
         while(current->next != NULL) {
             next = (event_t *)current->next;
-            Buffer.destroy(current->buf);
             MemoryPool.free(current);
             current = (event_t *)next;        
         }
-        Buffer.destroy(current->buf);
         MemoryPool.free(current);
     }
     MemoryPool.free(s->current_frame);

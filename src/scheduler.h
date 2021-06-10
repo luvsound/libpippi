@@ -7,6 +7,7 @@
 typedef struct event_t {
     size_t id;
     buffer_t * buf;
+    size_t pos;
     size_t onset;
     void * next;
 } event_t;

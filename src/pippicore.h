@@ -43,12 +43,17 @@ typedef struct buffer_t {
 
     /* used for different types of playback */
     lpfloat_t phase;
+    size_t range;
     size_t pos;
 } buffer_t;
 
 /* Factories & static interfaces */
 typedef struct lprand_t {
+    lpfloat_t logistic_seed;
+    lpfloat_t logistic_x;
     void (*seed)(int);
+    lpfloat_t (*logistic_rand)(lpfloat_t, lpfloat_t);
+    lpfloat_t (*rand_base)(lpfloat_t, lpfloat_t);
     lpfloat_t (*rand)(lpfloat_t, lpfloat_t);
     int (*randint)(int, int);
     int (*randbool)(void);
@@ -105,20 +110,20 @@ typedef struct interpolation_factory_t {
 } interpolation_factory_t;
 
 typedef struct wavetable_factory_t {
-    buffer_t* (*create)(char* name, size_t length);
+    buffer_t* (*create)(const char * name, size_t length);
     void (*destroy)(buffer_t*);
 } wavetable_factory_t;
 
 typedef struct window_factory_t {
-    buffer_t* (*create)(char* name, size_t length);
+    buffer_t* (*create)(const char * name, size_t length);
     void (*destroy)(buffer_t*);
 } window_factory_t;
 
 
 /* Interfaces */
-extern const lprand_t Rand;
-extern const buffer_factory_t Buffer;
+extern lprand_t Rand;
 extern memorypool_factory_t MemoryPool;
+extern const buffer_factory_t Buffer;
 extern const interpolation_factory_t Interpolation;
 extern const param_factory_t Param;
 extern const wavetable_factory_t Wavetable;
