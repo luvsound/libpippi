@@ -22,3 +22,7 @@ time ./build/scheduler
 
 echo "Rendering additive synthesis example..."
 time ./build/additive_synthesis
+
+echo "Rendering graincloud example..."
+time ./build/graincloud
+

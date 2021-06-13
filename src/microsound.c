@@ -87,8 +87,10 @@ lpcloud_t * cloud_create(int numgrains, size_t maxgrainlength, size_t mingrainle
     cloud = (lpcloud_t *)MemoryPool.alloc(1, sizeof(lpcloud_t));
     cloud->window = Wavetable.create("hann", maxgrainlength);
     cloud->rb = LPRingBuffer.create(rblength, channels, samplerate);
+    cloud->numgrains = numgrains;
     cloud->grains = (lpgrain_t **)MemoryPool.alloc(numgrains, sizeof(lpgrain_t *));
     cloud->grainamp = (1.f / numgrains);
+    cloud->current_frame = Buffer.create(1, channels, samplerate);
 
     for(i=0; i < numgrains; i++) {
         cloud->grains[i] = grain_create(maxgrainlength, mingrainlength, cloud->window);

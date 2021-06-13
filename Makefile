@@ -41,5 +41,8 @@ all:
 	echo "Building additive_synthesis.c example...";
 	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/additive_synthesis.c $(ALLSOURCES) -o build/additive_synthesis
 
+	echo "Building graincloud.c example...";
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/graincloud.c $(ALLSOURCES) -o build/graincloud
+
 	echo "Rendering examples..."
 	./scripts/render_examples.sh
