@@ -3,6 +3,7 @@
 #include "oscs.pulsar.h"
 #include "oscs.sine.h"
 
+#include "microsound.h"
 #include "mir.h"
 #include "ringbuffer.h"
 #include "scheduler.h"

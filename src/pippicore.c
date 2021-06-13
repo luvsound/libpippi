@@ -3,11 +3,24 @@
 #define LOGISTIC_SEED_DEFAULT 3.999
 #define LOGISTIC_X_DEFAULT 0.555
 
+#define LORENZ_TIMESTEP_DEFAULT 0.01
+#define LORENZ_A_DEFAULT 10.0
+#define LORENZ_B_DEFAULT 28.0
+#define LORENZ_C_DEFAULT (8.0 / 3.0)
+#define LORENZ_X_DEFAULT 0.1
+#define LORENZ_Y_DEFAULT 0.0
+#define LORENZ_Z_DEFAULT 0.0
+
+
 /* Forward declarations */
 void rand_seed(int value);
 lpfloat_t rand_base_logistic(lpfloat_t low, lpfloat_t high);
 lpfloat_t rand_base_stdlib(lpfloat_t low, lpfloat_t high);
 lpfloat_t rand_rand(lpfloat_t low, lpfloat_t high);
+lpfloat_t rand_base_lorenz(lpfloat_t low, lpfloat_t high);
+lpfloat_t rand_base_lorenzX(lpfloat_t low, lpfloat_t high);
+lpfloat_t rand_base_lorenzY(lpfloat_t low, lpfloat_t high);
+lpfloat_t rand_base_lorenzZ(lpfloat_t low, lpfloat_t high);
 int rand_randint(int low, int high);
 int rand_randbool(void);
 int rand_choice(int numchoices);
@@ -42,7 +55,13 @@ buffer_t* create_window(const char * name, size_t length);
 void destroy_window(buffer_t* buf);
 
 /* Populate interfaces */
-lprand_t Rand = { LOGISTIC_SEED_DEFAULT, LOGISTIC_X_DEFAULT, rand_seed, rand_base_logistic, rand_base_stdlib, rand_rand, rand_randint, rand_randbool, rand_choice };
+lprand_t Rand = { LOGISTIC_SEED_DEFAULT, LOGISTIC_X_DEFAULT, \
+    LORENZ_TIMESTEP_DEFAULT, \
+    LORENZ_X_DEFAULT, LORENZ_Y_DEFAULT, LORENZ_Z_DEFAULT, \
+    LORENZ_A_DEFAULT, LORENZ_B_DEFAULT, LORENZ_C_DEFAULT, \
+    rand_seed, rand_base_logistic, \
+    rand_base_lorenz, rand_base_lorenzX, rand_base_lorenzY, rand_base_lorenzZ, \
+    rand_base_stdlib, rand_rand, rand_randint, rand_randbool, rand_choice };
 memorypool_factory_t MemoryPool = { 0, 0, 0, memorypool_init, memorypool_custom_init, memorypool_alloc, memorypool_custom_alloc, memorypool_free };
 const buffer_factory_t Buffer = { create_buffer, scale_buffer, play_buffer, mix_buffers, multiply_buffer, dub_buffer, env_buffer, destroy_buffer };
 const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpolate_linear, interpolate_hermite_pos, interpolate_hermite };
@@ -63,6 +82,36 @@ lpfloat_t rand_base_stdlib(lpfloat_t low, lpfloat_t high) {
 lpfloat_t rand_base_logistic(lpfloat_t low, lpfloat_t high) {
     Rand.logistic_x = Rand.logistic_seed * Rand.logistic_x * (1.f - Rand.logistic_x);
     return Rand.logistic_x * (high-low) + low;
+}
+
+/* Lorenz attractor implementations lightly adapted with permission from Greg Cope's helpful 
+ * overview page: https://www.algosome.com/articles/lorenz-attractor-programming-code.html
+ */
+lpfloat_t rand_base_lorenzX(lpfloat_t low, lpfloat_t high) {
+    Rand.lorenz_x = Rand.lorenz_x + Rand.lorenz_timestep * Rand.lorenz_a * (Rand.lorenz_y - Rand.lorenz_x);
+    return Rand.lorenz_x * (high-low) + low;
+}
+
+lpfloat_t rand_base_lorenzY(lpfloat_t low, lpfloat_t high) {
+    Rand.lorenz_y = Rand.lorenz_y + Rand.lorenz_timestep * (Rand.lorenz_x * (Rand.lorenz_b - Rand.lorenz_z) - Rand.lorenz_y);
+    return Rand.lorenz_y * (high-low) + low;
+}
+
+lpfloat_t rand_base_lorenzZ(lpfloat_t low, lpfloat_t high) {
+    Rand.lorenz_z = Rand.lorenz_z + Rand.lorenz_timestep * (Rand.lorenz_x * Rand.lorenz_y - Rand.lorenz_c * Rand.lorenz_z);
+    return Rand.lorenz_z * (high-low) + low;
+}
+
+/* This will iterate all three lorenz equations and multiply the result. 
+ * The individual values are all still available at: 
+ *     Rand.lorenz_x, Rand.lorenz_y, Rand.lorenz_z
+ */
+lpfloat_t rand_base_lorenz(lpfloat_t low, lpfloat_t high) {
+    lpfloat_t x, y, z;
+    x = rand_base_lorenzX(0.f, 1.f);
+    y = rand_base_lorenzY(0.f, 1.f);
+    z = rand_base_lorenzZ(0.f, 1.f);
+    return x * y * z * (high-low) + low;
 }
 
 lpfloat_t rand_rand(lpfloat_t low, lpfloat_t high) {
@@ -528,6 +577,19 @@ lpfloat_t zapgremlins(lpfloat_t x) {
     lpfloat_t absx;
     absx = fabs(x);
     return (absx > (lpfloat_t)1e-15 && absx < (lpfloat_t)1e15) ? x : (lpfloat_t)0.f;
+}
+
+/* This trick came from Hacker's Delight.
+ *
+ * For values where length is a power of two
+ * it is the same as doing:
+ *
+ *      position = position % length;
+ *
+ * (But without the division.)
+ */
+size_t lpfastmod(size_t position, size_t length) {
+    return length - (-position & (length-1));
 }
 
 

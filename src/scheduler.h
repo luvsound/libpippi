@@ -3,7 +3,6 @@
 
 #include "pippicore.h"
 
-/* forward declaration */
 typedef struct event_t {
     size_t id;
     buffer_t * buf;

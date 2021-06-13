@@ -5,6 +5,7 @@ ringbuffer_t * ringbuffer_create(size_t length, int channels, int samplerate) {
     ringbuf = (ringbuffer_t*)MemoryPool.alloc(1, sizeof(ringbuffer_t));
     ringbuf->buf = Buffer.create(length, channels, samplerate);
     ringbuf->pos = 0;
+    ringbuf->boundry = length - 1;
     return ringbuf;
 }
 

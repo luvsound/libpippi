@@ -6,6 +6,7 @@
 typedef struct ringbuffer_t {
     buffer_t * buf;
     size_t pos;
+    size_t boundry;
 } ringbuffer_t;
 
 typedef struct ringbuffer_factory_t {

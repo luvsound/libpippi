@@ -51,8 +51,24 @@ typedef struct buffer_t {
 typedef struct lprand_t {
     lpfloat_t logistic_seed;
     lpfloat_t logistic_x;
+
+    lpfloat_t lorenz_timestep;
+    lpfloat_t lorenz_x;
+    lpfloat_t lorenz_y;
+    lpfloat_t lorenz_z;
+    lpfloat_t lorenz_a;
+    lpfloat_t lorenz_b;
+    lpfloat_t lorenz_c;
+
     void (*seed)(int);
-    lpfloat_t (*logistic_rand)(lpfloat_t, lpfloat_t);
+
+    lpfloat_t (*logistic)(lpfloat_t, lpfloat_t);
+
+    lpfloat_t (*lorenz)(lpfloat_t, lpfloat_t);
+    lpfloat_t (*lorenzX)(lpfloat_t, lpfloat_t);
+    lpfloat_t (*lorenzY)(lpfloat_t, lpfloat_t);
+    lpfloat_t (*lorenzZ)(lpfloat_t, lpfloat_t);
+
     lpfloat_t (*rand_base)(lpfloat_t, lpfloat_t);
     lpfloat_t (*rand)(lpfloat_t, lpfloat_t);
     int (*randint)(int, int);
@@ -144,5 +160,16 @@ extern const window_factory_t Window;
  *      It can be used at the end of a block to fix any recirculating filter values.
  */
 lpfloat_t zapgremlins(lpfloat_t x);
+
+/* This trick came from Hacker's Delight.
+ *
+ * For values where length is a power of two
+ * it is the same as doing:
+ *
+ *      position = position % length;
+ *
+ * (But without the division.)
+ */
+size_t lpfastmod(size_t position, size_t length);
 
 #endif
