@@ -2,7 +2,6 @@
 #define LP_GRAINS_H
 
 #include "pippicore.h"
-#include "ringbuffer.h"
 
 typedef struct lpgrain_t {
     size_t length;
@@ -28,12 +27,12 @@ typedef struct lpcloud_t {
     lpfloat_t grainamp;
     buffer_t * window;
     buffer_t * current_frame;
-    ringbuffer_t * rb;
+    buffer_t * rb;
 } lpcloud_t;
 
 typedef struct grain_factory_t {
     lpgrain_t * (*create)(size_t, size_t, buffer_t *);
-    void (*process)(lpgrain_t *, ringbuffer_t *, buffer_t *);
+    void (*process)(lpgrain_t *, buffer_t *, buffer_t *);
     void (*destroy)(lpgrain_t *);
 } grain_factory_t;
 

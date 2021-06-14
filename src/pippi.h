@@ -5,7 +5,6 @@
 
 #include "microsound.h"
 #include "mir.h"
-#include "ringbuffer.h"
 #include "scheduler.h"
 #include "soundfile.h"
 

@@ -14,8 +14,8 @@ int main() {
 
     length = 10 * SR;
     numgrains = 20;
-    maxgrainlength = 4800;
-    mingrainlength = 480;
+    maxgrainlength = SR;
+    mingrainlength = SR/10.;
 
     out = Buffer.create(length, CHANNELS, SR);
     cloud = Cloud.create(numgrains, maxgrainlength, mingrainlength, length, CHANNELS, SR);

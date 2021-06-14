@@ -16,7 +16,7 @@ int main() {
     buffer_t * out;
     sineosc_t * osc;
 
-    ringbuffer_t * ringbuf;
+    buffer_t * ringbuf;
     buffer_t * halfsec;
 
     freq = Param.from_float(200.0f);
@@ -34,7 +34,7 @@ int main() {
 
     LPRingBuffer.write(ringbuf, out);
 
-    SoundFile.write("renders/ring_buffer-write-out.wav", ringbuf->buf);
+    SoundFile.write("renders/ring_buffer-write-out.wav", ringbuf);
 
     halfsec = LPRingBuffer.read(ringbuf, SR/2);
 

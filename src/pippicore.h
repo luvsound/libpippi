@@ -43,6 +43,7 @@ typedef struct buffer_t {
 
     /* used for different types of playback */
     lpfloat_t phase;
+    size_t boundry;
     size_t range;
     size_t pos;
 } buffer_t;
@@ -86,6 +87,18 @@ typedef struct buffer_factory_t {
     void (*env)(buffer_t *, buffer_t *);
     void (*destroy)(buffer_t *);
 } buffer_factory_t;
+
+typedef struct ringbuffer_factory_t {
+    buffer_t * (*create)(size_t, int, int);
+    void (*fill)(buffer_t *, buffer_t *, int);
+    buffer_t * (*read)(buffer_t *, size_t);
+    void (*writefrom)(buffer_t *, lpfloat_t *, int, int);
+    void (*write)(buffer_t *, buffer_t *);
+    lpfloat_t (*readone)(buffer_t *, int);
+    void (*writeone)(buffer_t *, lpfloat_t);
+    void (*dub)(buffer_t *, buffer_t *);
+    void (*destroy)(buffer_t *);
+} ringbuffer_factory_t;
 
 typedef struct param_factory_t {
     buffer_t * (*from_float)(lpfloat_t);
@@ -144,6 +157,7 @@ extern const interpolation_factory_t Interpolation;
 extern const param_factory_t Param;
 extern const wavetable_factory_t Wavetable;
 extern const window_factory_t Window;
+extern const ringbuffer_factory_t LPRingBuffer;
 
 
 /* Utilities */

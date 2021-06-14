@@ -2,7 +2,6 @@
 #define LP_MIR_H
 
 #include "pippicore.h"
-#include "ringbuffer.h"
 
 typedef struct yin_t {
     buffer_t * block;

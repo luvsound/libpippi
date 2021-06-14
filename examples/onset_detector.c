@@ -17,7 +17,7 @@ int main() {
     buffer_t * silence;
 
     sineosc_t * osc;
-    ringbuffer_t * ringbuf;
+    buffer_t * ringbuf;
     int i, event, numticks;
     coyote_t * od;
     int gate;
@@ -53,10 +53,10 @@ int main() {
         }
     }
 
-    od = OnsetDetector.coyote_create(ringbuf->buf->samplerate);
+    od = OnsetDetector.coyote_create(ringbuf->samplerate);
     gate = 1;
     for(i=0; i < SR; i++) {
-        OnsetDetector.coyote_process(od, ringbuf->buf->data[i]);
+        OnsetDetector.coyote_process(od, ringbuf->data[i]);
         if(gate != od->gate) {
             if(gate == 1 && od->gate == 0) {
                 printf("Onset! at %f seconds. gate: %d od->gate: %d\n", (double)i/SR, gate, od->gate);
@@ -65,7 +65,7 @@ int main() {
         }
     }
 
-    SoundFile.write("renders/onset_detector-out.wav", ringbuf->buf);
+    SoundFile.write("renders/onset_detector-out.wav", ringbuf);
 
     SineOsc.destroy(osc);
     Buffer.destroy(wavelet);

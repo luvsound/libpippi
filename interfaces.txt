@@ -19,6 +19,8 @@ pippicore.h: assert.h, math.h, stdio.h, stdlib.h, string.h
     Buffer.create()
     Buffer.destroy()
 
+    LPRingBuffer et al...
+
     MemoryPool.init()
     MemoryPool.alloc()
 
@@ -52,5 +54,5 @@ sineosc.h: pippicore.h
 
 
 # user-facing header (except for embedded...)
-pippi.h: pippicore.h, soundfile.h, oscs.pulsar.h, oscs.sine.h, ringbuffer.h
+pippi.h: pippicore.h, soundfile.h, oscs.pulsar.h, oscs.sine.h
 

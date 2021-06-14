@@ -35,6 +35,16 @@ buffer_t * copy_buffer(buffer_t * buf);
 buffer_t * mix_buffers(buffer_t * a, buffer_t * b);
 void destroy_buffer(buffer_t * buf);
 
+buffer_t * ringbuffer_create(size_t length, int channels, int samplerate);
+void ringbuffer_fill(buffer_t * ringbuf, buffer_t * buf, int offset);
+lpfloat_t ringbuffer_readone(buffer_t * ringbuf, int offset);
+buffer_t * ringbuffer_read(buffer_t * ringbuf, size_t length);
+void ringbuffer_writeone(buffer_t * ringbuf, lpfloat_t sample);
+void ringbuffer_writefrom(buffer_t * ringbuf, lpfloat_t * data, int length, int channels);
+void ringbuffer_write(buffer_t * ringbuf, buffer_t * buf);
+void ringbuffer_dub(buffer_t * buf, buffer_t * src);
+void ringbuffer_destroy(buffer_t * buf);
+
 void memorypool_init(unsigned char * pool, size_t poolsize);
 memorypool_t * memorypool_custom_init(unsigned char * pool, size_t poolsize);
 void * memorypool_alloc(size_t itemcount, size_t itemsize);
@@ -68,6 +78,7 @@ const interpolation_factory_t Interpolation = { interpolate_linear_pos, interpol
 const param_factory_t Param = { param_create_from_float, param_create_from_int };
 const wavetable_factory_t Wavetable = { create_wavetable, destroy_wavetable };
 const window_factory_t Window = { create_window, destroy_window };
+const ringbuffer_factory_t LPRingBuffer = { ringbuffer_create, ringbuffer_fill, ringbuffer_read, ringbuffer_writefrom, ringbuffer_write, ringbuffer_readone, ringbuffer_writeone, ringbuffer_dub, ringbuffer_destroy };
 
 /** Rand
  */
@@ -284,6 +295,103 @@ void destroy_buffer(buffer_t * buf) {
     MemoryPool.free(buf->data);
     MemoryPool.free(buf);
 }
+
+/* RingBuffers
+ */
+buffer_t * ringbuffer_create(size_t length, int channels, int samplerate) {
+    buffer_t * ringbuf;
+    ringbuf = Buffer.create(length, channels, samplerate);
+    ringbuf->pos = 0;
+    ringbuf->boundry = length - 1;
+    return ringbuf;
+}
+
+void ringbuffer_fill(buffer_t * ringbuf, buffer_t * buf, int offset) {
+    int i, c;
+    size_t pos = ringbuf->pos - buf->length - offset;
+    pos = pos % ringbuf->length;
+    for(i=0; i < buf->length; i++) {
+        for(c=0; c < ringbuf->channels; c++) {
+            buf->data[i * buf->channels + c] = ringbuf->data[pos * ringbuf->channels + c];
+        }
+
+        pos += 1;
+        pos = pos % ringbuf->length;
+    }
+}
+
+lpfloat_t ringbuffer_readone(buffer_t * ringbuf, int offset) {
+    return ringbuf->data[(ringbuf->pos - offset) % ringbuf->length];
+}
+
+buffer_t * ringbuffer_read(buffer_t * ringbuf, size_t length) {
+    int i, c;
+    size_t pos = ringbuf->pos - length;
+    buffer_t * out;
+
+    pos = pos % ringbuf->length;
+    out = Buffer.create(length, ringbuf->channels, ringbuf->samplerate);
+    for(i=0; i < length; i++) {
+        for(c=0; c < ringbuf->channels; c++) {
+            out->data[i * out->channels + c] = ringbuf->data[pos * ringbuf->channels + c];
+        }
+
+        pos += 1;
+        pos = pos % ringbuf->length;
+    }
+
+    return out;
+}
+
+void ringbuffer_writeone(buffer_t * ringbuf, lpfloat_t sample) {
+    ringbuf->data[ringbuf->pos] = sample;
+    ringbuf->pos += 1;
+    ringbuf->pos = ringbuf->pos % ringbuf->length;
+}
+
+void ringbuffer_writefrom(buffer_t * ringbuf, lpfloat_t * data, int length, int channels) {
+    int i, c, j;
+    for(i=0; i < length; i++) {
+        for(c=0; c < ringbuf->channels; c++) {
+            j = c % channels;
+            ringbuf->data[ringbuf->pos * ringbuf->channels + c] = data[i * channels + j];
+        }
+
+        ringbuf->pos += 1;
+        ringbuf->pos = ringbuf->pos % ringbuf->length;
+    }
+}
+
+void ringbuffer_write(buffer_t * ringbuf, buffer_t * buf) {
+    int i, c, j;
+    for(i=0; i < buf->length; i++) {
+        for(c=0; c < ringbuf->channels; c++) {
+            j = c % buf->channels;
+            ringbuf->data[ringbuf->pos * ringbuf->channels + c] = buf->data[i * buf->channels + j];
+        }
+
+        ringbuf->pos += 1;
+        ringbuf->pos = ringbuf->pos % ringbuf->length;
+    }
+}
+
+void ringbuffer_dub(buffer_t * buf, buffer_t * src) {
+    int i, c, j;
+    for(i=0; i < src->length; i++) {
+        for(c=0; c < buf->channels; c++) {
+            j = c % src->channels;
+            buf->data[buf->pos * buf->channels + c] += src->data[i * src->channels + j];
+        }
+
+        buf->pos += 1;
+        buf->pos = buf->pos % buf->length;
+    }
+}
+
+void ringbuffer_destroy(buffer_t * buf) {
+    Buffer.destroy(buf);
+}
+
 
 /* MemoryPool
  * */
@@ -577,19 +685,6 @@ lpfloat_t zapgremlins(lpfloat_t x) {
     lpfloat_t absx;
     absx = fabs(x);
     return (absx > (lpfloat_t)1e-15 && absx < (lpfloat_t)1e15) ? x : (lpfloat_t)0.f;
-}
-
-/* This trick came from Hacker's Delight.
- *
- * For values where length is a power of two
- * it is the same as doing:
- *
- *      position = position % length;
- *
- * (But without the division.)
- */
-size_t lpfastmod(size_t position, size_t length) {
-    return length - (-position & (length-1));
 }
 
 
