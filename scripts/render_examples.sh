@@ -26,3 +26,6 @@ time ./build/additive_synthesis
 echo "Rendering graincloud example..."
 time ./build/graincloud
 
+echo "Rendering tapeosc example..."
+time ./build/tapeosc
+

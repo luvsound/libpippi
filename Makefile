@@ -44,5 +44,8 @@ all:
 	echo "Building graincloud.c example...";
 	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/graincloud.c $(ALLSOURCES) -o build/graincloud
 
+	echo "Building tapeosc.c example...";
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/tapeosc.c $(ALLSOURCES) -o build/tapeosc
+
 	echo "Rendering examples..."
 	./scripts/render_examples.sh

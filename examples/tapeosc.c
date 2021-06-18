@@ -19,7 +19,7 @@ int main() {
 
     sineosc = LPSineOsc.create();
     sinefreq = LPParam.from_float(220.f);
-    sineamp = LPParam.from_float(0.2f)
+    sineamp = LPParam.from_float(0.2f);
     sine = LPSineOsc.render(sineosc, length, sinefreq, sineamp, CHANNELS);
 
     out = LPBuffer.create(length, CHANNELS, SR);
@@ -33,7 +33,7 @@ int main() {
         }
     }
 
-    LPSoundFile.write("renders/sineosc-out.wav", out);
+    LPSoundFile.write("renders/tapeosc-out.wav", out);
 
     LPSineOsc.destroy(sineosc);
     LPTapeOsc.destroy(osc);
