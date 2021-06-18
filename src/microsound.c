@@ -79,12 +79,14 @@ lpcloud_t * cloud_create(int numstreams, size_t maxgrainlength, size_t mingrainl
     for(i=0; i < cloud->numgrains; i += 2) {
         cloud->grains[i] = grain_create(grainlength, cloud->window);
         cloud->grains[i]->amp = cloud->grainamp;
+        cloud->grains[i]->osc = LPTapeOsc.create(cloud->rb);
         /*cloud->grains[i]->offset = (size_t)LPRand.randint(0, cloud->rb->length - cloud->grains[i]->length - 1);*/
 
         cloud->grains[i+1] = grain_create(grainlength, cloud->window);
         cloud->grains[i+1]->amp = cloud->grainamp;
         /*cloud->grains[i+1]->phase = cloud->grains[i+1]->length/2.f;*/
         cloud->grains[i+1]->window_phase = cloud->window->length/2.f;
+        cloud->grains[i+1]->osc = LPTapeOsc.create(cloud->rb);
         /*cloud->grains[i+1]->offset = (size_t)LPRand.randint(0, cloud->rb->length - cloud->grains[i+1]->length - 1);*/
     }
 
