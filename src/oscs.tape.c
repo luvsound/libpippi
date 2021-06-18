@@ -37,7 +37,7 @@ void process_tapeosc(lptapeosc_t * osc) {
         osc->current_frame->data[c] = sample;
     }
 
-    osc->phase += osc->freq * (1.0/osc->samplerate);
+    osc->phase += osc->freq * osc->samplerate;
 
     while(osc->phase >= osc->buf->length) {
         osc->phase -= osc->buf->length;
