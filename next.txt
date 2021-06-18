@@ -1,28 +1,17 @@
 Core:
-    Add compile-time option for static tables...
     port more wavetables & windows
-    Probably all non-factory types should have an lp prefix
 
 Microsound:
-    GrainProvider first pass
-        sources: buffer, process callback
-    Buffer stack routines?
     Waveset segmentation
 
 FX:
-    port butterworth lowpass from sndkit?
-        might as well give JOS another shot first, too...
     port Will's SVFs from pippi
 
-Scheduler:
-    Add rendering_stack_head
-    event_t should support some internal ugen abstraction (lpugen_t?)
-    ugen abstraction should support lifecycle interfaces for:
-        - libpippi ugens (easy)
-        - soundpipe ugens (probably straightforward)
-    ugens should be composable into arbitary graphs, ideally via an embedded scripting language as per previous discussions with PB!
-    ugen graphs should allow injection of contexts to support external control (like MIDI or OSC or whatever)
+SoundFile:
+    Read WAV files into lpbuffer_t
 
+Scheduler:
+    event_t should support some internal ugen abstraction (lpugen_t?)
     what does an instrument script look like in libpippi?
         - offline rendering vs realtime ugen graphs
 
