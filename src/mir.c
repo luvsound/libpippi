@@ -12,7 +12,7 @@
  * https://github.com/earslap/SCPlugins
  */
 
-void yin_difference_function(yin_t * yin) {
+void yin_difference_function(lpyin_t * yin) {
     int j, tau, pos;
     lpfloat_t tmp, s1, s2;
 
@@ -27,7 +27,7 @@ void yin_difference_function(yin_t * yin) {
     }
 }
 
-void yin_cumulative_mean_normalized_difference_function(yin_t * yin) {
+void yin_cumulative_mean_normalized_difference_function(lpyin_t * yin) {
     lpfloat_t prev, denominator, value;
     int i;
 
@@ -40,7 +40,7 @@ void yin_cumulative_mean_normalized_difference_function(yin_t * yin) {
     }
 }
 
-lpfloat_t yin_get_pitch(yin_t * yin) {
+lpfloat_t yin_get_pitch(lpyin_t * yin) {
     int tau;
     tau = yin->tau_min;
     while (tau < yin->tau_max) {
@@ -57,7 +57,7 @@ lpfloat_t yin_get_pitch(yin_t * yin) {
     return yin->last_pitch;
 }
 
-lpfloat_t yin_process(yin_t * yin, lpfloat_t sample) {
+lpfloat_t yin_process(lpyin_t * yin, lpfloat_t sample) {
     lpfloat_t p;
     yin->block->data[yin->block->pos] = sample;
     yin->block->pos += 1;
@@ -76,22 +76,22 @@ lpfloat_t yin_process(yin_t * yin, lpfloat_t sample) {
     return p;
 }
 
-yin_t * yin_create(int blocksize, int samplerate) {
+lpyin_t * yin_create(int blocksize, int samplerate) {
     lpfloat_t f0_max, f0_min;
-    yin_t * yin;
+    lpyin_t * yin;
 
     f0_max = 20000.f;
     f0_min = 100.f;
 
-    yin = (yin_t *)MemoryPool.alloc(1, sizeof(yin_t));
+    yin = (lpyin_t *)LPMemoryPool.alloc(1, sizeof(lpyin_t));
     yin->samplerate = samplerate;
     yin->blocksize = blocksize;
     yin->stepsize = blocksize / 4;
     yin->tau_min = (int)(samplerate / f0_max);
     yin->tau_max = (int)(samplerate / f0_min);
 
-    yin->block = Buffer.create(yin->blocksize, 1, samplerate);
-    yin->tmp = Buffer.create(yin->tau_max, 1, samplerate);
+    yin->block = LPBuffer.create(yin->blocksize, 1, samplerate);
+    yin->tmp = LPBuffer.create(yin->tau_max, 1, samplerate);
     yin->fallback = 0.f; /* Fallback pitch in hz for output values before any pitch is detected */
     yin->last_pitch = yin->fallback;
     yin->threshold = 0.85f;
@@ -101,16 +101,16 @@ yin_t * yin_create(int blocksize, int samplerate) {
     return yin;
 }
 
-void yin_destroy(yin_t * yin) {
-    MemoryPool.free(yin->tmp);
-    MemoryPool.free(yin->block);
-    MemoryPool.free(yin);
+void yin_destroy(lpyin_t * yin) {
+    LPMemoryPool.free(yin->tmp);
+    LPMemoryPool.free(yin->block);
+    LPMemoryPool.free(yin);
 }
 
-coyote_t * coyote_create(int samplerate) {
-    coyote_t * od;
+lpcoyote_t * coyote_create(int samplerate) {
+    lpcoyote_t * od;
 
-    od = (coyote_t *)MemoryPool.alloc(1, sizeof(coyote_t));
+    od = (lpcoyote_t *)LPMemoryPool.alloc(1, sizeof(lpcoyote_t));
 
     od->log1 = log(0.1f);
     od->log01 = log(0.01f);
@@ -146,7 +146,7 @@ coyote_t * coyote_create(int samplerate) {
     return od;
 }
 
-lpfloat_t coyote_process(coyote_t * od, lpfloat_t sample) {
+lpfloat_t coyote_process(lpcoyote_t * od, lpfloat_t sample) {
     lpfloat_t prev;
     lpfloat_t tracker_out, trig;
     lpfloat_t fast_val, slow_val;
@@ -182,9 +182,9 @@ lpfloat_t coyote_process(coyote_t * od, lpfloat_t sample) {
     fast_val = od->fast_lag_prev = tracker_out + (od->fast_lag_coef * (od->fast_lag_prev - tracker_out));
     avg_val = od->avg_lag_prev = od->current_avg + (od->fast_lag_coef * (od->avg_lag_prev - od->current_avg));
 
-    od->slow_lag_prev = zapgremlins(od->slow_lag_prev);
-    od->fast_lag_prev = zapgremlins(od->fast_lag_prev);
-    od->avg_lag_prev = zapgremlins(od->avg_lag_prev);
+    od->slow_lag_prev = lpzapgremlins(od->slow_lag_prev);
+    od->fast_lag_prev = lpzapgremlins(od->fast_lag_prev);
+    od->avg_lag_prev = lpzapgremlins(od->avg_lag_prev);
 
     trig = od->avg_trig = ((fast_val > slow_val) || (fast_val> avg_val)) * (tracker_out > od->thresh)  * od->gate;
     od->e_time += 1;
@@ -203,10 +203,10 @@ lpfloat_t coyote_process(coyote_t * od, lpfloat_t sample) {
     return out;
 }
 
-void coyote_destroy(coyote_t * od) {
-    MemoryPool.free(od);
+void coyote_destroy(lpcoyote_t * od) {
+    LPMemoryPool.free(od);
 }
 
-const mir_pitch_factory_t PitchTracker = { yin_create, yin_process, yin_destroy };
-const mir_onset_factory_t OnsetDetector = { coyote_create, coyote_process, coyote_destroy };
+const lpmir_pitch_factory_t LPPitchTracker = { yin_create, yin_process, yin_destroy };
+const lpmir_onset_factory_t LPOnsetDetector = { coyote_create, coyote_process, coyote_destroy };
 

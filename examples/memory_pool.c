@@ -25,9 +25,11 @@
  * To save some program space in constrained environments, We can use the 
  * "pippicore.h" header instead, and include only the modules we actually 
  * want to use.
+ *
+ * Actually "pippicore.h" may be omitted since the modules will include it 
+ * if missing, but it's nice to be explicit.
  * */
 #include "pippicore.h"
-
 
 /* Since we are using the pippicore.h header, 
  * lets include the module(s) we wish to use.
@@ -53,9 +55,9 @@ unsigned char pool[POOLSIZE];
 int main() {
     lpfloat_t minfreq, maxfreq, amp, sample;
     size_t i, c, length;
-    buffer_t* freq_lfo;
-    buffer_t* out;
-    sineosc_t* osc;
+    lpbuffer_t * freq_lfo;
+    lpbuffer_t * out;
+    lpsineosc_t * osc;
 
     /* This is the final required step.
      * Pool.init() tells pippi about the
@@ -65,7 +67,7 @@ int main() {
      * all internal allocations will use the
      * pool instead of dynamic allocation.
      **/
-    MemoryPool.init((unsigned char *)pool, POOLSIZE);
+    LPMemoryPool.init((unsigned char *)pool, POOLSIZE);
 
     minfreq = 80.0f;
     maxfreq = 800.0f;
@@ -74,13 +76,13 @@ int main() {
     length = 10 * SR;
 
     /* Make an LFO table to use as a frequency curve for the osc */
-    freq_lfo = Window.create("sine", BS);
+    freq_lfo = LPWindow.create("sine", BS);
 
     /* Scale it from a range of -1 to 1 to a range of minfreq to maxfreq */
-    Buffer.scale(freq_lfo, 0.f, 1.f, minfreq, maxfreq);
+    LPBuffer.scale(freq_lfo, 0.f, 1.f, minfreq, maxfreq);
 
-    out = Buffer.create(length, CHANNELS, SR);
-    osc = SineOsc.create();
+    out = LPBuffer.create(length, CHANNELS, SR);
+    osc = LPSineOsc.create();
     osc->samplerate = SR;
 
     /* If we were actually running this in an embedded environment, 
@@ -88,19 +90,19 @@ int main() {
      * for the audio codec. In this example we create a buffer big enough 
      * to hold the output and then write it all to disk. */
     for(i=0; i < length; i++) {
-        osc->freq = Interpolation.linear_pos(freq_lfo, (float)i/length);
-        sample = SineOsc.process(osc) * amp;
+        osc->freq = LPInterpolation.linear_pos(freq_lfo, (float)i/length);
+        sample = LPSineOsc.process(osc) * amp;
         for(c=0; c < CHANNELS; c++) {
             out->data[i * CHANNELS + c] = sample;
         }
     }
 
-    SoundFile.write("renders/memorypool-out.wav", out);
+    LPSoundFile.write("renders/memorypool-out.wav", out);
 
     /* These are a no-op if the static allocator is enabled. */
-    SineOsc.destroy(osc);
-    Buffer.destroy(out);
-    Buffer.destroy(freq_lfo);
+    LPSineOsc.destroy(osc);
+    LPBuffer.destroy(out);
+    LPBuffer.destroy(freq_lfo);
 
     return 0;
 }

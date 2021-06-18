@@ -3,8 +3,8 @@
 
 #include "pippicore.h"
 
-typedef struct yin_t {
-    buffer_t * block;
+typedef struct lpyin_t {
+    lpbuffer_t * block;
     int samplerate;
     int blocksize;
     int stepsize; /* overlap between analysis blocks */
@@ -14,18 +14,18 @@ typedef struct yin_t {
     int offset;
     int elapsed;
 
-    buffer_t * tmp; /* Temp buffer for processing */
+    lpbuffer_t * tmp; /* Temp buffer for processing */
 
     int tau_max;
     int tau_min;
-} yin_t;
+} lpyin_t;
 
 /**
  * Coyote onset detector ported with permission from 
  * the SuperCollider BatUGens by Batuhan Bozkurt.
  * https://github.com/earslap/SCPlugins
  */
-typedef struct coyote_t {
+typedef struct lpcoyote_t {
     lpfloat_t track_fall_time;
     lpfloat_t slow_lag_time, fast_lag_time, fast_lag_mul;
     lpfloat_t thresh, min_dur;
@@ -56,21 +56,21 @@ typedef struct coyote_t {
 
     int e_time;
     int gate;
-} coyote_t;
+} lpcoyote_t;
 
-typedef struct mir_pitch_factory_t {
-    yin_t * (*yin_create)(int, int);
-    lpfloat_t (*yin_process)(yin_t *, lpfloat_t);
-    void (*yin_destroy)(yin_t *);
-} mir_pitch_factory_t;
+typedef struct lpmir_pitch_factory_t {
+    lpyin_t * (*yin_create)(int, int);
+    lpfloat_t (*yin_process)(lpyin_t *, lpfloat_t);
+    void (*yin_destroy)(lpyin_t *);
+} lpmir_pitch_factory_t;
 
-typedef struct mir_onset_factory_t {
-    coyote_t * (*coyote_create)(int samplerate);
-    lpfloat_t (*coyote_process)(coyote_t * od, lpfloat_t sample);
-    void (*coyote_destory)(coyote_t * od);
-} mir_onset_factory_t;
+typedef struct lpmir_onset_factory_t {
+    lpcoyote_t * (*coyote_create)(int samplerate);
+    lpfloat_t (*coyote_process)(lpcoyote_t * od, lpfloat_t sample);
+    void (*coyote_destory)(lpcoyote_t * od);
+} lpmir_onset_factory_t;
 
-extern const mir_pitch_factory_t PitchTracker;
-extern const mir_onset_factory_t OnsetDetector;
+extern const lpmir_pitch_factory_t LPPitchTracker;
+extern const lpmir_onset_factory_t LPOnsetDetector;
 
 #endif

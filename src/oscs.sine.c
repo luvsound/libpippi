@@ -1,22 +1,22 @@
 #include "pippicore.h"
 #include "oscs.sine.h"
 
-sineosc_t* create_sineosc(void);
-lpfloat_t process_sineosc(sineosc_t* osc);
-buffer_t * render_sineosc(sineosc_t * osc, size_t length, buffer_t * freq, buffer_t * amp, int channels);
-void destroy_sineosc(sineosc_t* osc);
+lpsineosc_t * create_sineosc(void);
+lpfloat_t process_sineosc(lpsineosc_t * osc);
+lpbuffer_t * render_sineosc(lpsineosc_t * osc, size_t length, lpbuffer_t * freq, lpbuffer_t * amp, int channels);
+void destroy_sineosc(lpsineosc_t * osc);
 
-const sineosc_factory_t SineOsc = { create_sineosc, process_sineosc, render_sineosc, destroy_sineosc };
+const lpsineosc_factory_t LPSineOsc = { create_sineosc, process_sineosc, render_sineosc, destroy_sineosc };
 
-sineosc_t* create_sineosc(void) {
-    sineosc_t* osc = (sineosc_t*)MemoryPool.alloc(1, sizeof(sineosc_t));
+lpsineosc_t * create_sineosc(void) {
+    lpsineosc_t * osc = (lpsineosc_t *)LPMemoryPool.alloc(1, sizeof(lpsineosc_t));
     osc->phase = 0;
     osc->freq = 220.0;
     osc->samplerate = 48000.0;
     return osc;
 }
 
-lpfloat_t process_sineosc(sineosc_t* osc) {
+lpfloat_t process_sineosc(lpsineosc_t* osc) {
     lpfloat_t sample;
     
     sample = sin(PI2 * osc->phase);
@@ -30,18 +30,18 @@ lpfloat_t process_sineosc(sineosc_t* osc) {
     return sample;
 }
 
-buffer_t * render_sineosc(sineosc_t * osc, size_t length, buffer_t * freq, buffer_t * amp, int channels) {
-    buffer_t * out;
+lpbuffer_t * render_sineosc(lpsineosc_t * osc, size_t length, lpbuffer_t * freq, lpbuffer_t * amp, int channels) {
+    lpbuffer_t * out;
     lpfloat_t sample, _amp;
     size_t i, c;
     float pos;
 
     pos = 0.f;
-    out = Buffer.create(length, channels, osc->samplerate);
+    out = LPBuffer.create(length, channels, osc->samplerate);
     for(i=0; i < length; i++) {
         pos = (float)i/length;
-        osc->freq = Interpolation.linear_pos(freq, pos);
-        _amp = Interpolation.linear_pos(amp, pos);
+        osc->freq = LPInterpolation.linear_pos(freq, pos);
+        _amp = LPInterpolation.linear_pos(amp, pos);
         sample = process_sineosc(osc) * _amp;
         for(c=0; c < channels; c++) {
             out->data[i * channels + c] = sample;
@@ -51,8 +51,8 @@ buffer_t * render_sineosc(sineosc_t * osc, size_t length, buffer_t * freq, buffe
     return out;
 }
 
-void destroy_sineosc(sineosc_t* osc) {
-    MemoryPool.free(osc);
+void destroy_sineosc(lpsineosc_t * osc) {
+    LPMemoryPool.free(osc);
 }
 
 

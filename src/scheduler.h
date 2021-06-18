@@ -3,34 +3,34 @@
 
 #include "pippicore.h"
 
-typedef struct event_t {
+typedef struct lpevent_t {
     size_t id;
-    buffer_t * buf;
+    lpbuffer_t * buf;
     size_t pos;
     size_t onset;
     void * next;
-} event_t;
+} lpevent_t;
 
-typedef struct scheduler_t {
+typedef struct lpscheduler_t {
     lpfloat_t * current_frame;
     int channels;
     size_t now;
     size_t event_count;
-    event_t * waiting_queue_head;
-    event_t * playing_stack_head;
-    event_t * garbage_stack_head;
-} scheduler_t;
+    lpevent_t * waiting_queue_head;
+    lpevent_t * playing_stack_head;
+    lpevent_t * garbage_stack_head;
+} lpscheduler_t;
 
-typedef struct scheduler_factory_t {
-    scheduler_t * (*create)(int);
-    void (*tick)(scheduler_t *);
-    int (*count_waiting)(scheduler_t *);
-    int (*count_playing)(scheduler_t *);
-    int (*count_done)(scheduler_t *);
-    void (*schedule_event)(scheduler_t *, buffer_t *, size_t);
-    void (*destroy)(scheduler_t *);
-} scheduler_factory_t;
+typedef struct lpscheduler_factory_t {
+    lpscheduler_t * (*create)(int);
+    void (*tick)(lpscheduler_t *);
+    int (*count_waiting)(lpscheduler_t *);
+    int (*count_playing)(lpscheduler_t *);
+    int (*count_done)(lpscheduler_t *);
+    void (*schedule_event)(lpscheduler_t *, lpbuffer_t *, size_t);
+    void (*destroy)(lpscheduler_t *);
+} lpscheduler_factory_t;
 
-extern const scheduler_factory_t Scheduler;
+extern const lpscheduler_factory_t LPScheduler;
 
 #endif

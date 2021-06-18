@@ -10,15 +10,15 @@ int main() {
 
     lpfloat_t sample = 0;
 
-    pulsarosc_t* oscs[VOICES];
+    lppulsarosc_t * oscs[VOICES];
     lpfloat_t freqs[VOICES] = {220., 330., 440., 550.};
     lpfloat_t morphs[VOICES] = {0.1, 0.2, 0.3, 0.4};
     lpfloat_t mods[VOICES] = {0.01, 0.02, 0.03, 0.04};
 
-    buffer_t* buf = Buffer.create(length, CHANNELS, SR);    
+    lpbuffer_t * buf = LPBuffer.create(length, CHANNELS, SR);    
 
     for(i=0; i < VOICES; i++) {
-        oscs[i] = PulsarOsc.create();
+        oscs[i] = LPPulsarOsc.create();
         oscs[i]->freq = freqs[i];
         oscs[i]->morphfreq = morphs[i];
         oscs[i]->modfreq = mods[i];
@@ -27,7 +27,7 @@ int main() {
     for(i=0; i < length; i++) {
         sample = 0;
         for(v=0; v < VOICES; v++) {
-            sample += PulsarOsc.process(oscs[v]) * 0.2;
+            sample += LPPulsarOsc.process(oscs[v]) * 0.2;
         }
 
         for(c=0; c < CHANNELS; c++) {
@@ -35,13 +35,13 @@ int main() {
         }
     }
 
-    SoundFile.write("renders/pulsarosc-out.wav", buf);
+    LPSoundFile.write("renders/pulsarosc-out.wav", buf);
 
     for(v=0; v < VOICES; v++) {
-        PulsarOsc.destroy(oscs[v]);
+        LPPulsarOsc.destroy(oscs[v]);
     }
 
-    Buffer.destroy(buf);
+    LPBuffer.destroy(buf);
 
     return 0;
 }

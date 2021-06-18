@@ -3,10 +3,10 @@
 
 #include "pippicore.h"
 
-typedef struct soundfile_factory_t {
-    void (*write)(char*, buffer_t*);
-} soundfile_factory_t;
+typedef struct lpsoundfile_factory_t {
+    void (*write)(const char *, lpbuffer_t *);
+} lpsoundfile_factory_t;
 
-extern const soundfile_factory_t SoundFile;
+extern const lpsoundfile_factory_t LPSoundFile;
 
 #endif

@@ -5,15 +5,15 @@
 
 #define LP_SOUNDFILE_BUFSIZE 1024
 
-void write_soundfile(char* path, buffer_t* buf) {
+void write_soundfile(const char * path, lpbuffer_t * buf) {
     int count;
-    float* tmpbuf;
+    float * tmpbuf;
     drwav wav;
     drwav_data_format format;
     int i, c;
 
     int channels = buf->channels;
-    tmpbuf = (float*)MemoryPool.alloc(LP_SOUNDFILE_BUFSIZE * buf->channels, sizeof(float));
+    tmpbuf = (float *)LPMemoryPool.alloc(LP_SOUNDFILE_BUFSIZE * buf->channels, sizeof(float));
 
     format.container = drwav_container_riff;
     format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
@@ -43,8 +43,8 @@ void write_soundfile(char* path, buffer_t* buf) {
     }
 
     drwav_uninit(&wav);
-    MemoryPool.free(tmpbuf);
+    LPMemoryPool.free(tmpbuf);
 }
 
 
-const soundfile_factory_t SoundFile = { write_soundfile };
+const lpsoundfile_factory_t LPSoundFile = { write_soundfile };

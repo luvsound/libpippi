@@ -3,19 +3,19 @@
 
 #include "pippicore.h"
 
-typedef struct sineosc_t {
+typedef struct lpsineosc_t {
     lpfloat_t phase;
     lpfloat_t freq;
     lpfloat_t samplerate;
-} sineosc_t;
+} lpsineosc_t;
 
-typedef struct sineosc_factory_t {
-    sineosc_t * (*create)(void);
-    lpfloat_t (*process)(sineosc_t *);
-    buffer_t * (*render)(sineosc_t*, size_t, buffer_t *, buffer_t *, int);
-    void (*destroy)(sineosc_t *);
-} sineosc_factory_t;
+typedef struct lpsineosc_factory_t {
+    lpsineosc_t * (*create)(void);
+    lpfloat_t (*process)(lpsineosc_t *);
+    lpbuffer_t * (*render)(lpsineosc_t*, size_t, lpbuffer_t *, lpbuffer_t *, int);
+    void (*destroy)(lpsineosc_t *);
+} lpsineosc_factory_t;
 
-extern const sineosc_factory_t SineOsc;
+extern const lpsineosc_factory_t LPSineOsc;
 
 #endif

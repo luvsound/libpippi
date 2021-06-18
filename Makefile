@@ -4,6 +4,7 @@ default: all
 
 ALLSOURCES = src/oscs.sine.c \
 	src/oscs.pulsar.c \
+	src/oscs.tape.c \
 	src/microsound.c \
 	src/mir.c \
 	src/soundfile.c \

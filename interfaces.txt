@@ -1,58 +1,58 @@
 # Just an outline to help think through refactoring...
 
-
+/* CORE */
 pippicore.h: assert.h, math.h, stdio.h, stdlib.h, string.h
     lpfloat_t
-    buffer_t
+    lpbuffer_t
+    lpmemorypool_t
 
-    PI
-    PI2
+    LPBuffer
+    LPRingBuffer
 
-    SINE
-    SQUARE
-    TRI
-    PHASOR
-    HANN
+    LPWavetable
+    LPWindow
 
-    Buffer.scale()
-    Buffer.mix()
-    Buffer.create()
-    Buffer.destroy()
+    LPRand
+    LPParam
+    LPMemoryPool
+    LPInterpolation
 
-    LPRingBuffer et al...
+    lpzapgremlins
 
-    MemoryPool.init()
-    MemoryPool.alloc()
+/* OSCS */
+oscs.pulsar.h: 
+    lppulsarosc_t
+    LPPulsarOsc
 
-    Interpolation.linear_pos()
-    Interpolation.linear()
-    Interpolation.hermite_pos()
-    Interpolation.hermite()
+oscs.sine.h: 
+    lpsineosc_t
+    LPSineOsc
 
-    Wavetable.create()
-    Wavetable.destroy()
+oscs.tape.h:
+    lptapeosc_t
+    LPTapeOsc
 
-    Window.create()
-    Window.destroy()
+/* MIR */
+mir.h:
+    lpyin_t
+    lpcoyote_t
+    LPPitchTracker
+    LPOnsetDetector
 
-soundfile.h: pippicore.h
-    SoundFile.write()
+/* MICROSOUND */
+microsound.h: oscs.tape.h
+    lpgrain_t
+    lpcloud_t
+    LPGrain
+    LPCloud
 
-pulsarosc.h: pippicore.h
-    pulsarosc_t
+/* TOOLS */
+soundfile.h: 
+    LPSoundFile
 
-    PulsarOsc.create()
-    PulsarOsc.process()
-    PulsarOsc.destroy()
+scheduler.h:
+    lpevent_t
+    lpscheduler_t
 
-sineosc.h: pippicore.h
-    sineosc_t
-
-    SineOsc.create()
-    SineOsc.process()
-    SineOsc.destroy()
-
-
-# user-facing header (except for embedded...)
-pippi.h: pippicore.h, soundfile.h, oscs.pulsar.h, oscs.sine.h
+    LPScheduler
 

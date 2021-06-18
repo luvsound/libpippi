@@ -10,16 +10,16 @@
 
 int main() {
     size_t length;
-    buffer_t * amp;
-    buffer_t * env;
-    buffer_t * freq;
-    buffer_t * wavelet;
-    buffer_t * silence;
+    lpbuffer_t * amp;
+    lpbuffer_t * env;
+    lpbuffer_t * freq;
+    lpbuffer_t * wavelet;
+    lpbuffer_t * silence;
 
-    sineosc_t * osc;
-    buffer_t * ringbuf;
+    lpsineosc_t * osc;
+    lpbuffer_t * ringbuf;
     int i, event, numticks;
-    coyote_t * od;
+    lpcoyote_t * od;
     int gate;
 
 
@@ -27,20 +27,20 @@ int main() {
     ringbuf = LPRingBuffer.create(SR, CHANNELS, SR); 
 
     /* 60 frames of silence */
-    silence = Buffer.create(600, CHANNELS, SR);
+    silence = LPBuffer.create(600, CHANNELS, SR);
 
     /* Setup the SineOsc params */
-    freq = Param.from_float(2000.0f);
-    amp = Param.from_float(0.2f);
-    env = Window.create("sine", 128);
+    freq = LPParam.from_float(2000.0f);
+    amp = LPParam.from_float(0.2f);
+    env = LPWindow.create("sine", 128);
 
-    osc = SineOsc.create();
+    osc = LPSineOsc.create();
     osc->samplerate = SR;
 
     /* 1ms sine wavelet */
     length = 48;
-    wavelet = SineOsc.render(osc, length, freq, amp, CHANNELS);
-    Buffer.env(wavelet, env);
+    wavelet = LPSineOsc.render(osc, length, freq, amp, CHANNELS);
+    LPBuffer.env(wavelet, env);
 
     /* Write some wavelet blips into the ring buffer */
     numticks = 80;
@@ -53,10 +53,10 @@ int main() {
         }
     }
 
-    od = OnsetDetector.coyote_create(ringbuf->samplerate);
+    od = LPOnsetDetector.coyote_create(ringbuf->samplerate);
     gate = 1;
     for(i=0; i < SR; i++) {
-        OnsetDetector.coyote_process(od, ringbuf->data[i]);
+        LPOnsetDetector.coyote_process(od, ringbuf->data[i]);
         if(gate != od->gate) {
             if(gate == 1 && od->gate == 0) {
                 printf("Onset! at %f seconds. gate: %d od->gate: %d\n", (double)i/SR, gate, od->gate);
@@ -65,14 +65,14 @@ int main() {
         }
     }
 
-    SoundFile.write("renders/onset_detector-out.wav", ringbuf);
+    LPSoundFile.write("renders/onset_detector-out.wav", ringbuf);
 
-    SineOsc.destroy(osc);
-    Buffer.destroy(wavelet);
-    Buffer.destroy(silence);
-    Buffer.destroy(freq);
-    Buffer.destroy(amp);
-    OnsetDetector.coyote_destory(od);
+    LPSineOsc.destroy(osc);
+    LPBuffer.destroy(wavelet);
+    LPBuffer.destroy(silence);
+    LPBuffer.destroy(freq);
+    LPBuffer.destroy(amp);
+    LPOnsetDetector.coyote_destory(od);
 
     return 0;
 }

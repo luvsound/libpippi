@@ -1,12 +1,11 @@
-#include "pippicore.h"
 #include "microsound.h"
 
-lpgrain_t * grain_create(size_t maxlength, size_t minlength, buffer_t * window) {
+lpgrain_t * grain_create(size_t length, lpbuffer_t * window) {
     lpgrain_t * g;
 
-    g = (lpgrain_t *)MemoryPool.alloc(1, sizeof(lpgrain_t));
-    g->maxlength = maxlength;
-    g->minlength = minlength;
+    g = (lpgrain_t *)LPMemoryPool.alloc(1, sizeof(lpgrain_t));
+    g->speed = 1.f;
+    g->length = length * (1.f / g->speed);
     g->offset = 0;
     g->startpos = 0;
 
@@ -14,10 +13,6 @@ lpgrain_t * grain_create(size_t maxlength, size_t minlength, buffer_t * window) 
     g->phaseinc = 1.f;
     g->pan = 0.5f;
     g->amp = 1.f;
-    g->speed = 1.f;
-
-    /*g->length = (size_t)Rand.randint(g->minlength, g->maxlength) * (1.f / g->speed);*/
-    g->length = maxlength;
 
     g->window = window;
     g->window_phase = 0.f;
@@ -26,43 +21,25 @@ lpgrain_t * grain_create(size_t maxlength, size_t minlength, buffer_t * window) 
     return g;
 }
 
-void grain_process(lpgrain_t * g, buffer_t * rb, buffer_t * out) {
-    lpfloat_t sample, pos, f, a, b;
-    int is_odd, idxa, idxb, channel;
+void grain_process(lpgrain_t * g, lpbuffer_t * rb, lpbuffer_t * out) {
+    lpfloat_t sample;
+    int is_odd, channel;
 
     /* FIXME -- support mismatched channels between provider & output? */
     assert(rb->channels == out->channels);
 
-    if(g->phase >= g->length) {
-        /*
-        g->length = (size_t)Rand.randint(g->minlength, g->maxlength) * (1.f / g->speed);
-        g->offset = (size_t)Rand.randint(0, rb->length - g->length - 1);
-        */
-        g->startpos = rb->pos - g->length + g->offset;
-
-        g->window_phaseinc = (lpfloat_t)g->window->length / g->length;
-        g->pan = Rand.rand(0.f, 1.f);
-
-        g->phase = g->phase - g->length;
-        g->phaseinc = g->speed;
-    }
-
     if(g->window_phase >= g->window->length) {
+        if(g->spread > 0) {
+            g->pan = LPRand.rand(0.f, 1.f);
+        }
         g->window_phase = g->window_phase - g->window->length;
+        g->window_phaseinc = (lpfloat_t)g->window->length / g->length;
+        g->startpos = rb->pos - g->length + g->offset;
     }
 
-    pos = g->startpos + g->phase;
-
-    idxa = (size_t)pos % rb->length;
-    idxb = (size_t)(pos+out->channels) % rb->length;
-    f = g->phase - (int)g->phase;
-
+    LPTapeOsc.process(g->osc);
     for(channel=0; channel < out->channels; channel++) {
-        a = rb->data[idxa * out->channels + channel];
-        b = rb->data[idxb * out->channels + channel];
-        sample = (1.f - f) * a + (f * b);
-
-        sample = sample * g->amp * g->window->data[(size_t)g->window_phase];
+        sample = g->osc->current_frame->data[channel] * g->window->data[(size_t)g->window_phase];
 
         is_odd = (2-(channel & 1));
         if(is_odd == 1) {
@@ -79,24 +56,36 @@ void grain_process(lpgrain_t * g, buffer_t * rb, buffer_t * out) {
 }
 
 void grain_destroy(lpgrain_t * g) {
-    MemoryPool.free(g);
+    LPMemoryPool.free(g);
 }
 
-lpcloud_t * cloud_create(int numgrains, size_t maxgrainlength, size_t mingrainlength, size_t rblength, int channels, int samplerate) {
+lpcloud_t * cloud_create(int numstreams, size_t maxgrainlength, size_t mingrainlength, size_t rblength, int channels, int samplerate) {
     lpcloud_t * cloud;
     int i;
+    size_t grainlength;
 
-    cloud = (lpcloud_t *)MemoryPool.alloc(1, sizeof(lpcloud_t));
-    cloud->window = Wavetable.create("sine", maxgrainlength);
+    cloud = (lpcloud_t *)LPMemoryPool.alloc(1, sizeof(lpcloud_t));
+    cloud->window = LPWavetable.create("hann", maxgrainlength);
     cloud->rb = LPRingBuffer.create(rblength, channels, samplerate);
-    cloud->numgrains = numgrains;
-    cloud->grains = (lpgrain_t **)MemoryPool.alloc(numgrains, sizeof(lpgrain_t *));
-    cloud->grainamp = (1.f / numgrains);
-    cloud->current_frame = Buffer.create(1, channels, samplerate);
+    cloud->maxlength = maxgrainlength;
+    cloud->minlength = mingrainlength;
+    cloud->numgrains = numstreams * 2;
+    cloud->grains = (lpgrain_t **)LPMemoryPool.alloc(cloud->numgrains, sizeof(lpgrain_t *));
+    cloud->grainamp = (1.f / cloud->numgrains);
+    cloud->current_frame = LPBuffer.create(1, channels, samplerate);
 
-    for(i=0; i < numgrains; i++) {
-        cloud->grains[i] = grain_create(maxgrainlength, mingrainlength, cloud->window);
+    grainlength = (size_t)LPRand.randint(cloud->minlength, cloud->maxlength);
+
+    for(i=0; i < cloud->numgrains; i += 2) {
+        cloud->grains[i] = grain_create(grainlength, cloud->window);
         cloud->grains[i]->amp = cloud->grainamp;
+        /*cloud->grains[i]->offset = (size_t)LPRand.randint(0, cloud->rb->length - cloud->grains[i]->length - 1);*/
+
+        cloud->grains[i+1] = grain_create(grainlength, cloud->window);
+        cloud->grains[i+1]->amp = cloud->grainamp;
+        /*cloud->grains[i+1]->phase = cloud->grains[i+1]->length/2.f;*/
+        cloud->grains[i+1]->window_phase = cloud->window->length/2.f;
+        /*cloud->grains[i+1]->offset = (size_t)LPRand.randint(0, cloud->rb->length - cloud->grains[i+1]->length - 1);*/
     }
 
     return cloud;
@@ -110,15 +99,26 @@ void cloud_process(lpcloud_t * c) {
     }
 
     for(i=0; i < c->numgrains; i++) {
+        c->grains[i]->length = (size_t)LPRand.randint(c->minlength, c->maxlength) * (1.f / c->grains[i]->speed);
+        c->grains[i]->offset = (size_t)LPRand.randint(0, c->rb->length - c->grains[i]->length - 1);
+
         grain_process(c->grains[i], c->rb, c->current_frame);
     }
 }
 
 void cloud_destroy(lpcloud_t * c) {
-    MemoryPool.free(c);
+    int i;
+    for(i=0; i < c->numgrains; i++) {
+        LPMemoryPool.free(c->grains[i]);
+    }
+    LPMemoryPool.free(c->grains);
+    LPBuffer.destroy(c->window);
+    LPBuffer.destroy(c->rb);
+    LPBuffer.destroy(c->current_frame);
+    LPMemoryPool.free(c);
 }
 
-const grain_factory_t Grain = { grain_create, grain_process, grain_destroy };
-const cloud_factory_t Cloud = { cloud_create, cloud_process, cloud_destroy };
+const lpgrain_factory_t LPGrain = { grain_create, grain_process, grain_destroy };
+const lpcloud_factory_t LPCloud = { cloud_create, cloud_process, cloud_destroy };
 
 

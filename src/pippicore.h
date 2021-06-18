@@ -35,7 +35,7 @@ typedef double lpfloat_t;
 #define DEFAULT_SAMPLERATE 48000
 
 /* Core datatypes */
-typedef struct buffer_t {
+typedef struct lpbuffer_t {
     lpfloat_t* data;
     size_t length;
     int samplerate;
@@ -46,7 +46,20 @@ typedef struct buffer_t {
     size_t boundry;
     size_t range;
     size_t pos;
-} buffer_t;
+} lpbuffer_t;
+
+/* Users may create custom memorypools. 
+ * If the primary memorypool is active, 
+ * it will be used to allocate the pool.
+ *
+ * Otherwise initializtion of the pool 
+ * will use the stdlib to calloc the space.
+ */
+typedef struct lpmemorypool_t {
+    unsigned char * pool;
+    size_t poolsize;
+    size_t pos;
+} lpmemorypool_t;
 
 /* Factories & static interfaces */
 typedef struct lprand_t {
@@ -77,88 +90,76 @@ typedef struct lprand_t {
     int (*choice)(int);
 } lprand_t;
 
-typedef struct buffer_factory_t {
-    buffer_t * (*create)(size_t, int, int);
-    void (*scale)(buffer_t *, lpfloat_t, lpfloat_t, lpfloat_t, lpfloat_t);
-    lpfloat_t (*play)(buffer_t *, lpfloat_t);
-    buffer_t * (*mix)(buffer_t *, buffer_t *);
-    void (*multiply)(buffer_t *, buffer_t *);
-    void (*dub)(buffer_t *, buffer_t *);
-    void (*env)(buffer_t *, buffer_t *);
-    void (*destroy)(buffer_t *);
-} buffer_factory_t;
+typedef struct lpbuffer_factory_t {
+    lpbuffer_t * (*create)(size_t, int, int);
+    void (*scale)(lpbuffer_t *, lpfloat_t, lpfloat_t, lpfloat_t, lpfloat_t);
+    lpfloat_t (*play)(lpbuffer_t *, lpfloat_t);
+    lpbuffer_t * (*mix)(lpbuffer_t *, lpbuffer_t *);
+    void (*multiply)(lpbuffer_t *, lpbuffer_t *);
+    void (*dub)(lpbuffer_t *, lpbuffer_t *);
+    void (*env)(lpbuffer_t *, lpbuffer_t *);
+    void (*destroy)(lpbuffer_t *);
+} lpbuffer_factory_t;
 
-typedef struct ringbuffer_factory_t {
-    buffer_t * (*create)(size_t, int, int);
-    void (*fill)(buffer_t *, buffer_t *, int);
-    buffer_t * (*read)(buffer_t *, size_t);
-    void (*writefrom)(buffer_t *, lpfloat_t *, int, int);
-    void (*write)(buffer_t *, buffer_t *);
-    lpfloat_t (*readone)(buffer_t *, int);
-    void (*writeone)(buffer_t *, lpfloat_t);
-    void (*dub)(buffer_t *, buffer_t *);
-    void (*destroy)(buffer_t *);
-} ringbuffer_factory_t;
+typedef struct lpringbuffer_factory_t {
+    lpbuffer_t * (*create)(size_t, int, int);
+    void (*fill)(lpbuffer_t *, lpbuffer_t *, int);
+    lpbuffer_t * (*read)(lpbuffer_t *, size_t);
+    void (*writefrom)(lpbuffer_t *, lpfloat_t *, int, int);
+    void (*write)(lpbuffer_t *, lpbuffer_t *);
+    lpfloat_t (*readone)(lpbuffer_t *, int);
+    void (*writeone)(lpbuffer_t *, lpfloat_t);
+    void (*dub)(lpbuffer_t *, lpbuffer_t *);
+    void (*destroy)(lpbuffer_t *);
+} lpringbuffer_factory_t;
 
-typedef struct param_factory_t {
-    buffer_t * (*from_float)(lpfloat_t);
-    buffer_t * (*from_int)(int);
-} param_factory_t;
+typedef struct lpparam_factory_t {
+    lpbuffer_t * (*from_float)(lpfloat_t);
+    lpbuffer_t * (*from_int)(int);
+} lpparam_factory_t;
 
-/* Users may create custom memorypools. 
- * If the primary memorypool is active, 
- * it will be used to allocate the pool.
- *
- * Otherwise initializtion of the pool 
- * will use the stdlib to calloc the space.
- */
-typedef struct memorypool_t {
-    unsigned char * pool;
-    size_t poolsize;
-    size_t pos;
-} memorypool_t;
-
-typedef struct memorypool_factory_t {
+typedef struct lpmemorypool_factory_t {
     /* This is the primary memorypool. */
     unsigned char * pool;
     size_t poolsize;
     size_t pos;
 
     void (*init)(unsigned char *, size_t);
-    memorypool_t * (*custom_init)(unsigned char *, size_t);
+    lpmemorypool_t * (*custom_init)(unsigned char *, size_t);
     void * (*alloc)(size_t, size_t);
-    void * (*custom_alloc)(memorypool_t *, size_t, size_t);
+    void * (*custom_alloc)(lpmemorypool_t *, size_t, size_t);
     void (*free)(void *);
-} memorypool_factory_t;
+} lpmemorypool_factory_t;
 
-typedef struct interpolation_factory_t {
-    lpfloat_t (*linear_pos)(buffer_t*, lpfloat_t);
-    lpfloat_t (*linear)(buffer_t*, lpfloat_t);
-    lpfloat_t (*hermite_pos)(buffer_t*, lpfloat_t);
-    lpfloat_t (*hermite)(buffer_t*, lpfloat_t);
-} interpolation_factory_t;
+typedef struct lpinterpolation_factory_t {
+    lpfloat_t (*linear_pos)(lpbuffer_t*, lpfloat_t);
+    lpfloat_t (*linear)(lpbuffer_t*, lpfloat_t);
+    lpfloat_t (*hermite_pos)(lpbuffer_t*, lpfloat_t);
+    lpfloat_t (*hermite)(lpbuffer_t*, lpfloat_t);
+} lpinterpolation_factory_t;
 
-typedef struct wavetable_factory_t {
-    buffer_t* (*create)(const char * name, size_t length);
-    void (*destroy)(buffer_t*);
-} wavetable_factory_t;
+typedef struct lpwavetable_factory_t {
+    lpbuffer_t* (*create)(const char * name, size_t length);
+    void (*destroy)(lpbuffer_t*);
+} lpwavetable_factory_t;
 
-typedef struct window_factory_t {
-    buffer_t* (*create)(const char * name, size_t length);
-    void (*destroy)(buffer_t*);
-} window_factory_t;
+typedef struct lpwindow_factory_t {
+    lpbuffer_t* (*create)(const char * name, size_t length);
+    void (*destroy)(lpbuffer_t*);
+} lpwindow_factory_t;
 
 
 /* Interfaces */
-extern lprand_t Rand;
-extern memorypool_factory_t MemoryPool;
-extern const buffer_factory_t Buffer;
-extern const interpolation_factory_t Interpolation;
-extern const param_factory_t Param;
-extern const wavetable_factory_t Wavetable;
-extern const window_factory_t Window;
-extern const ringbuffer_factory_t LPRingBuffer;
+extern const lpbuffer_factory_t LPBuffer;
+extern const lpringbuffer_factory_t LPRingBuffer;
 
+extern const lpwavetable_factory_t LPWavetable;
+extern const lpwindow_factory_t LPWindow;
+
+extern lprand_t LPRand;
+extern const lpparam_factory_t LPParam;
+extern lpmemorypool_factory_t LPMemoryPool;
+extern const lpinterpolation_factory_t LPInterpolation;
 
 /* Utilities */
 
@@ -173,17 +174,6 @@ extern const ringbuffer_factory_t LPRingBuffer;
  *      This is a function for preventing pathological math operations in ugens.
  *      It can be used at the end of a block to fix any recirculating filter values.
  */
-lpfloat_t zapgremlins(lpfloat_t x);
-
-/* This trick came from Hacker's Delight.
- *
- * For values where length is a power of two
- * it is the same as doing:
- *
- *      position = position % length;
- *
- * (But without the division.)
- */
-size_t lpfastmod(size_t position, size_t length);
+lpfloat_t lpzapgremlins(lpfloat_t x);
 
 #endif
