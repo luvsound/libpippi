@@ -29,3 +29,6 @@ time ./build/graincloud
 echo "Rendering tapeosc example..."
 time ./build/tapeosc
 
+echo "Rendering readsoundfile example..."
+time ./build/readsoundfile
+

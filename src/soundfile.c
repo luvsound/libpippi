@@ -5,6 +5,30 @@
 
 #define LP_SOUNDFILE_BUFSIZE 1024
 
+lpbuffer_t * read_soundfile(const char * path) {
+    unsigned int channels;
+    unsigned int samplerate;
+    lpbuffer_t * out;
+    drwav_uint64 frames;
+    float * data;
+    int i, c;
+
+    data = (float *)drwav_open_file_and_read_pcm_frames_f32(path, &channels, &samplerate, &frames, NULL);
+    if (data == NULL) {
+        printf("Error: could not open file: %s", path);
+        exit(EXIT_FAILURE);
+    }
+
+    out = LPBuffer.create(frames, channels, samplerate);
+    for(i=0; i < frames; i++) {
+        for(c=0; c < channels; c++) {
+            out->data[i * channels + c] = data[i * channels + c];
+        }
+    }
+    drwav_free(data, NULL);
+    return out;
+}
+
 void write_soundfile(const char * path, lpbuffer_t * buf) {
     int count;
     float * tmpbuf;
@@ -47,4 +71,4 @@ void write_soundfile(const char * path, lpbuffer_t * buf) {
 }
 
 
-const lpsoundfile_factory_t LPSoundFile = { write_soundfile };
+const lpsoundfile_factory_t LPSoundFile = { read_soundfile, write_soundfile };

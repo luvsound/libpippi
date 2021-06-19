@@ -10,6 +10,9 @@ Running `make` will build these example programs:
 - `examples/pitch_tracker.c`
 - `examples/scheduler.c`
 - `examples/additive_synthesis.c`
+- `examples/graincloud.c`
+- `examples/tapeosc.c`
+- `examples/readsoundfile.c`
 
 ...and run them, depositing test renders into the 
 `renders` directory. 

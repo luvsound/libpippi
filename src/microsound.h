@@ -5,14 +5,12 @@
 #include "oscs.tape.h"
 
 typedef struct lpgrain_t {
-    size_t length;
-    size_t offset;
-    size_t startpos;
+    lpfloat_t length;
+    lpfloat_t offset;
 
     lptapeosc_t * osc;
 
     lpfloat_t phase;
-    lpfloat_t phaseinc;
     lpfloat_t pan;
     lpfloat_t amp;
     lpfloat_t speed;
@@ -36,8 +34,8 @@ typedef struct lpcloud_t {
 } lpcloud_t;
 
 typedef struct lpgrain_factory_t {
-    lpgrain_t * (*create)(size_t, lpbuffer_t *);
-    void (*process)(lpgrain_t *, lpbuffer_t *, lpbuffer_t *);
+    lpgrain_t * (*create)(lpfloat_t, lpbuffer_t *, lpbuffer_t *);
+    void (*process)(lpgrain_t *, lpbuffer_t *);
     void (*destroy)(lpgrain_t *);
 } lpgrain_factory_t;
 

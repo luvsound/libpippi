@@ -4,6 +4,7 @@
 #include "pippicore.h"
 
 typedef struct lpsoundfile_factory_t {
+    lpbuffer_t * (*read)(const char *);
     void (*write)(const char *, lpbuffer_t *);
 } lpsoundfile_factory_t;
 

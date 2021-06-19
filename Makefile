@@ -47,5 +47,9 @@ all:
 	echo "Building tapeosc.c example...";
 	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/tapeosc.c $(ALLSOURCES) -o build/tapeosc
 
+	echo "Building readsoundfile.c example...";
+	gcc -g -std=c89 -Wall -pedantic -lm -Isrc -Ivendor examples/readsoundfile.c $(ALLSOURCES) -o build/readsoundfile
+
+
 	echo "Rendering examples..."
 	./scripts/render_examples.sh

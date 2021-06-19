@@ -1,32 +1,30 @@
 #include "microsound.h"
 
-lpgrain_t * grain_create(size_t length, lpbuffer_t * window) {
+lpgrain_t * grain_create(lpfloat_t length, lpbuffer_t * window, lpbuffer_t * source) {
     lpgrain_t * g;
 
     g = (lpgrain_t *)LPMemoryPool.alloc(1, sizeof(lpgrain_t));
     g->speed = 1.f;
     g->length = length * (1.f / g->speed);
-    g->offset = 0;
-    g->startpos = 0;
+    g->offset = 0.f;
+    g->osc = LPTapeOsc.create(source);
 
     g->phase = 0.f;
-    g->phaseinc = 1.f;
     g->pan = 0.5f;
     g->amp = 1.f;
+    g->spread = 0.f;
+    g->jitter = 0.f;
 
     g->window = window;
     g->window_phase = 0.f;
-    g->window_phaseinc = (lpfloat_t)window->length / g->length;
+    g->window_phaseinc = window->length / g->length;
 
     return g;
 }
 
-void grain_process(lpgrain_t * g, lpbuffer_t * rb, lpbuffer_t * out) {
+void grain_process(lpgrain_t * g, lpbuffer_t * out) {
     lpfloat_t sample;
     int is_odd, channel;
-
-    /* FIXME -- support mismatched channels between provider & output? */
-    assert(rb->channels == out->channels);
 
     if(g->window_phase >= g->window->length) {
         if(g->spread > 0) {
@@ -34,7 +32,8 @@ void grain_process(lpgrain_t * g, lpbuffer_t * rb, lpbuffer_t * out) {
         }
         g->window_phase = g->window_phase - g->window->length;
         g->window_phaseinc = (lpfloat_t)g->window->length / g->length;
-        g->startpos = rb->pos - g->length + g->offset;
+        g->osc->offset = -g->length;
+        g->osc->range = g->length;
     }
 
     LPTapeOsc.process(g->osc);
@@ -52,7 +51,6 @@ void grain_process(lpgrain_t * g, lpbuffer_t * rb, lpbuffer_t * out) {
     }
 
     g->window_phase += g->window_phaseinc;
-    g->phase += g->phaseinc;
 }
 
 void grain_destroy(lpgrain_t * g) {
@@ -77,17 +75,16 @@ lpcloud_t * cloud_create(int numstreams, size_t maxgrainlength, size_t mingrainl
     grainlength = (size_t)LPRand.randint(cloud->minlength, cloud->maxlength);
 
     for(i=0; i < cloud->numgrains; i += 2) {
-        cloud->grains[i] = grain_create(grainlength, cloud->window);
+        cloud->grains[i] = grain_create(grainlength, cloud->window, cloud->rb);
         cloud->grains[i]->amp = cloud->grainamp;
-        cloud->grains[i]->osc = LPTapeOsc.create(cloud->rb);
-        /*cloud->grains[i]->offset = (size_t)LPRand.randint(0, cloud->rb->length - cloud->grains[i]->length - 1);*/
+        cloud->grains[i]->osc->offset = -grainlength;
+        cloud->grains[i]->osc->range = grainlength;
 
-        cloud->grains[i+1] = grain_create(grainlength, cloud->window);
+        cloud->grains[i+1] = grain_create(grainlength, cloud->window, cloud->rb);
         cloud->grains[i+1]->amp = cloud->grainamp;
-        /*cloud->grains[i+1]->phase = cloud->grains[i+1]->length/2.f;*/
+        cloud->grains[i+1]->osc->offset = -grainlength;
+        cloud->grains[i+1]->osc->range = grainlength;
         cloud->grains[i+1]->window_phase = cloud->window->length/2.f;
-        cloud->grains[i+1]->osc = LPTapeOsc.create(cloud->rb);
-        /*cloud->grains[i+1]->offset = (size_t)LPRand.randint(0, cloud->rb->length - cloud->grains[i+1]->length - 1);*/
     }
 
     return cloud;
@@ -101,10 +98,10 @@ void cloud_process(lpcloud_t * c) {
     }
 
     for(i=0; i < c->numgrains; i++) {
-        c->grains[i]->length = (size_t)LPRand.randint(c->minlength, c->maxlength) * (1.f / c->grains[i]->speed);
-        c->grains[i]->offset = (size_t)LPRand.randint(0, c->rb->length - c->grains[i]->length - 1);
+        c->grains[i]->length = LPRand.rand(c->minlength, c->maxlength) * (1.f / c->grains[i]->speed);
+        /*c->grains[i]->offset = LPRand.rand(0.f, c->rb->length - c->grains[i]->length - 1.f);*/
 
-        grain_process(c->grains[i], c->rb, c->current_frame);
+        grain_process(c->grains[i], c->current_frame);
     }
 }
 

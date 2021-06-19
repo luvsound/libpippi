@@ -14,6 +14,8 @@ lptapeosc_t * create_tapeosc(lpbuffer_t * buf) {
     osc->speed = 1.f;
     osc->samplerate = buf->samplerate;
     osc->buf = buf;
+    osc->range = osc->buf->length;
+    osc->offset = 0.f;
     osc->current_frame = LPBuffer.create(1, buf->channels, buf->samplerate);
     return osc;
 }
@@ -23,7 +25,7 @@ void process_tapeosc(lptapeosc_t * osc) {
     int c, channels;
     size_t idxa, idxb;
 
-    pos = osc->buf->pos + osc->phase;
+    pos = osc->buf->pos + osc->phase + osc->offset;
     channels = osc->buf->channels;
 
     idxa = (size_t)pos % osc->buf->length;
@@ -37,10 +39,9 @@ void process_tapeosc(lptapeosc_t * osc) {
         osc->current_frame->data[c] = sample;
     }
 
-    osc->phase += osc->freq * osc->samplerate;
-
-    while(osc->phase >= osc->buf->length) {
-        osc->phase -= osc->buf->length;
+    osc->phase += osc->freq * osc->speed * osc->samplerate;
+    while(osc->phase >= osc->range) {
+        osc->phase -= osc->range;
     }
 }
 

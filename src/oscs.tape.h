@@ -7,7 +7,9 @@ typedef struct lptapeosc_t {
     lpfloat_t phase;
     lpfloat_t freq;
     lpfloat_t speed;
+    lpfloat_t offset;
     lpfloat_t samplerate;
+    lpfloat_t range;
     lpbuffer_t * buf;
     lpbuffer_t * current_frame;
 } lptapeosc_t;

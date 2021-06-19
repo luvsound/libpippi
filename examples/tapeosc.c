@@ -5,44 +5,43 @@
 #define CHANNELS 2
 
 int main() {
-    size_t i, c, length, minlength, maxlength;
+    size_t i, c, length;
     lpbuffer_t * out;
     lpbuffer_t * sine;
     lpbuffer_t * sineamp;
     lpbuffer_t * sinefreq;
-    lpbuffer_t * freqs;
+    lpbuffer_t * speeds;
     lpsineosc_t * sineosc;
     lptapeosc_t * osc;
-    lpfloat_t freqphase, freqphaseinc;
+    lpfloat_t speedphase, speedphaseinc;
 
     length = 10 * SR;
-    minlength = SR/100.;
-    maxlength = SR;
 
     sineosc = LPSineOsc.create();
     sinefreq = LPParam.from_float(80.f);
     sineamp = LPParam.from_float(0.2f);
     sine = LPSineOsc.render(sineosc, length, sinefreq, sineamp, CHANNELS);
 
-    freqs = LPWindow.create("sine", BS);
-    LPBuffer.scale(freqs, 0, 1, 1.f/maxlength, 1.f/minlength);
+    speeds = LPWindow.create("tri", BS);
+    LPBuffer.scale(speeds, 0, 1, 0.5f, 2.f);
 
     out = LPBuffer.create(length, CHANNELS, SR);
     osc = LPTapeOsc.create(sine);
     osc->samplerate = SR;
 
-    freqphaseinc = 1.f/freqs->length;
-    freqphase = 0.f;
+    speedphaseinc = 1.f/speeds->length;
+    speedphase = 0.f;
 
     for(i=0; i < length; i++) {
-        osc->freq = LPInterpolation.linear(freqs, freqphase);
+        osc->speed = LPInterpolation.linear(speeds, speedphase);
+
         LPTapeOsc.process(osc);
         for(c=0; c < CHANNELS; c++) {
             out->data[i * CHANNELS + c] = osc->current_frame->data[c];
         }
-        freqphase += freqphaseinc;
-        if(freqphase >= freqs->length) {
-            freqphase -= freqs->length;
+        speedphase += speedphaseinc;
+        if(speedphase >= speeds->length) {
+            speedphase -= speeds->length;
         }
     }
 
@@ -54,6 +53,7 @@ int main() {
     LPBuffer.destroy(sine);
     LPBuffer.destroy(sinefreq);
     LPBuffer.destroy(sineamp);
+    LPBuffer.destroy(speeds);
 
     return 0;
 }
