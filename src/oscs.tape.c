@@ -1,20 +1,24 @@
 #include "oscs.tape.h"
 
-lptapeosc_t * create_tapeosc(lpbuffer_t * buf);
+lptapeosc_t * create_tapeosc(lpbuffer_t * buf, lpfloat_t range);
 void process_tapeosc(lptapeosc_t * osc);
 lpbuffer_t * render_tapeosc(lptapeosc_t * osc, size_t length, lpbuffer_t * freq, lpbuffer_t * amp, int channels);
 void destroy_tapeosc(lptapeosc_t * osc);
 
 const lptapeosc_factory_t LPTapeOsc = { create_tapeosc, process_tapeosc, render_tapeosc, destroy_tapeosc };
 
-lptapeosc_t * create_tapeosc(lpbuffer_t * buf) {
+lptapeosc_t * create_tapeosc(lpbuffer_t * buf, lpfloat_t range) {
     lptapeosc_t* osc = (lptapeosc_t*)LPMemoryPool.alloc(1, sizeof(lptapeosc_t));
-    osc->phase = 0.f;
-    osc->freq = 1.f / buf->length;
-    osc->speed = 1.f;
-    osc->samplerate = buf->samplerate;
     osc->buf = buf;
-    osc->range = osc->buf->length;
+    osc->samplerate = buf->samplerate;
+    osc->range = range;
+    osc->_range = range;
+
+    osc->phase = 0.f;
+    osc->phaseinc = osc->_range / (lpfloat_t)osc->samplerate;
+    osc->freq = 1.f / osc->phaseinc;
+
+    osc->speed = 1.f;
     osc->offset = 0.f;
     osc->current_frame = LPBuffer.create(1, buf->channels, buf->samplerate);
     return osc;
@@ -39,8 +43,11 @@ void process_tapeosc(lptapeosc_t * osc) {
         osc->current_frame->data[c] = sample;
     }
 
-    osc->phase += osc->freq * osc->speed * osc->samplerate;
-    while(osc->phase >= osc->range) {
+    osc->phase += osc->freq * osc->speed * osc->phaseinc;
+
+    if(osc->phase >= osc->_range) {
+        osc->_range = osc->range;
+        osc->phaseinc = osc->_range / (lpfloat_t)osc->samplerate;
         osc->phase -= osc->range;
     }
 }

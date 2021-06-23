@@ -105,6 +105,7 @@ typedef struct lpringbuffer_factory_t {
     lpbuffer_t * (*create)(size_t, int, int);
     void (*fill)(lpbuffer_t *, lpbuffer_t *, int);
     lpbuffer_t * (*read)(lpbuffer_t *, size_t);
+    void (*readinto)(lpbuffer_t *, lpfloat_t *, int, int);
     void (*writefrom)(lpbuffer_t *, lpfloat_t *, int, int);
     void (*write)(lpbuffer_t *, lpbuffer_t *);
     lpfloat_t (*readone)(lpbuffer_t *, int);

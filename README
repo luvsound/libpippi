@@ -1,22 +1,3 @@
-This is in development!
+This has moved to the main pippi repo!
 
-Running `make` will build these example programs:
-
-- `examples/pulsar.c`
-- `examples/sineosc.c`
-- `examples/memory_pool.c`
-- `examples/ring_buffer.c`
-- `examples/onset_detector.c`
-- `examples/pitch_tracker.c`
-- `examples/scheduler.c`
-- `examples/additive_synthesis.c`
-- `examples/graincloud.c`
-- `examples/tapeosc.c`
-- `examples/readsoundfile.c`
-
-...and run them, depositing test renders into the 
-`renders` directory. 
-
-Running `make wavetables` will generate static 
-wavetable sources in the `generated` directory.
-
+https://pippi.world

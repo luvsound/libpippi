@@ -26,7 +26,7 @@ int main() {
     LPBuffer.scale(speeds, 0, 1, 0.5f, 2.f);
 
     out = LPBuffer.create(length, CHANNELS, SR);
-    osc = LPTapeOsc.create(sine);
+    osc = LPTapeOsc.create(sine, SR);
     osc->samplerate = SR;
 
     speedphaseinc = 1.f/speeds->length;

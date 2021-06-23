@@ -39,6 +39,7 @@ lpbuffer_t * ringbuffer_create(size_t length, int channels, int samplerate);
 void ringbuffer_fill(lpbuffer_t * ringbuf, lpbuffer_t * buf, int offset);
 lpfloat_t ringbuffer_readone(lpbuffer_t * ringbuf, int offset);
 lpbuffer_t * ringbuffer_read(lpbuffer_t * ringbuf, size_t length);
+void ringbuffer_readinto(lpbuffer_t * ringbuf, lpfloat_t * data, int length, int channels);
 void ringbuffer_writeone(lpbuffer_t * ringbuf, lpfloat_t sample);
 void ringbuffer_writefrom(lpbuffer_t * ringbuf, lpfloat_t * data, int length, int channels);
 void ringbuffer_write(lpbuffer_t * ringbuf, lpbuffer_t * buf);
@@ -78,7 +79,7 @@ const lpinterpolation_factory_t LPInterpolation = { interpolate_linear_pos, inte
 const lpparam_factory_t LPParam = { param_create_from_float, param_create_from_int };
 const lpwavetable_factory_t LPWavetable = { create_wavetable, destroy_wavetable };
 const lpwindow_factory_t LPWindow = { create_window, destroy_window };
-const lpringbuffer_factory_t LPRingBuffer = { ringbuffer_create, ringbuffer_fill, ringbuffer_read, ringbuffer_writefrom, ringbuffer_write, ringbuffer_readone, ringbuffer_writeone, ringbuffer_dub, ringbuffer_destroy };
+const lpringbuffer_factory_t LPRingBuffer = { ringbuffer_create, ringbuffer_fill, ringbuffer_read, ringbuffer_readinto, ringbuffer_writefrom, ringbuffer_write, ringbuffer_readone, ringbuffer_writeone, ringbuffer_dub, ringbuffer_destroy };
 
 /** Rand
  */
@@ -323,6 +324,21 @@ void ringbuffer_fill(lpbuffer_t * ringbuf, lpbuffer_t * buf, int offset) {
 
 lpfloat_t ringbuffer_readone(lpbuffer_t * ringbuf, int offset) {
     return ringbuf->data[(ringbuf->pos - offset) % ringbuf->length];
+}
+
+void ringbuffer_readinto(lpbuffer_t * ringbuf, lpfloat_t * data, int length, int channels) {
+    int i, c;
+    size_t pos = ringbuf->pos - length;
+    pos = pos % ringbuf->length;
+
+    for(i=0; i < length; i++) {
+        for(c=0; c < channels; c++) {
+            data[i * channels + c] = ringbuf->data[pos * channels + c];
+        }
+
+        pos += 1;
+        pos = pos % ringbuf->length;
+    }
 }
 
 lpbuffer_t * ringbuffer_read(lpbuffer_t * ringbuf, size_t length) {
